@@ -19,9 +19,9 @@
     <h2>Listado de Vídeos</h2>
     <%
         // Suponiendo que en el request se haya enviado una lista de videos
-        java.util.List<modelo.Video> listaVideos = (java.util.List<modelo.Video>) request.getAttribute("listaVideos");
+        java.util.List<com.isdcm.minetflix.model.Video> listaVideos = (java.util.List<com.isdcm.minetflix.model.Video>) request.getAttribute("listaVideos");
         if (listaVideos != null) {
-            for (modelo.Video vid : listaVideos) {
+            for (com.isdcm.minetflix.model.Video vid : listaVideos) {
                 out.println("<p>");
                 out.println("Título: " + vid.getTitulo() + "<br/>");
                 out.println("Autor: " + vid.getAutor() + "<br/>");
@@ -30,6 +30,7 @@
                 out.println("Reproducciones: " + vid.getReproducciones() + "<br/>");
                 out.println("Descripción: " + vid.getDescripcion() + "<br/>");
                 out.println("Formato: " + vid.getFormato() + "<br/>");
+                out.println("Elance: " + vid.getRutavideo() + "<br/>");
                 out.println("</p><hr/>");
             }
         }

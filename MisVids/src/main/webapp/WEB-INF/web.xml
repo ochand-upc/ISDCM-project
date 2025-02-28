@@ -7,8 +7,8 @@
         <session-timeout>
             30
         </session-timeout>
-        <welcome-file-list>
+        <!-- <welcome-file-list>
             <welcome-file>login.jsp</welcome-file>
-        </welcome-file-list>
+        </welcome-file-list> -->
     </session-config>
 </web-app>

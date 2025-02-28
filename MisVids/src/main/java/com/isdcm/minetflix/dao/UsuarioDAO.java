@@ -5,14 +5,14 @@
 package com.isdcm.minetflix.dao;
 
 import java.sql.*;
-import com.isdcm.minetflix.modelo.Usuario;
+import com.isdcm.minetflix.model.Usuario;
 
 public class UsuarioDAO {
     
     // Cambia la URL, usuario y contraseña según tu configuración
-    private static final String DB_URL = "jdbc:derby://localhost:1527/DBSistema;create=true";
-    private static final String DB_USER = "APP";
-    private static final String DB_PASS = "APP";
+    private static final String DB_URL = "jdbc:derby://localhost:1527/MINETFLIX;create=true";
+    private static final String DB_USER = "pr2";
+    private static final String DB_PASS = "pr2";
 
     // Método para insertar un usuario
     public static boolean insertarUsuario(Usuario usuario) throws SQLException {
@@ -53,7 +53,7 @@ public class UsuarioDAO {
             ps.setString(2, password);
             rs = ps.executeQuery();
             return rs.next(); // true si encuentra registro
-        } finally {
+         } finally {
             if (rs != null) rs.close();
             if (ps != null) ps.close();
             if (conn != null) conn.close();

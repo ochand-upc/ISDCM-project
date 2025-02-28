@@ -1,16 +1,12 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Servlet.java to edit this template
- */
 package com.isdcm.minetflix.controladores;
 
 
-import com.isdcm.minetflix.dao.Videos;
-import com.isdcm.minetflix.modelo.Video;
+import com.isdcm.minetflix.dao.VideoDAO;
+import com.isdcm.minetflix.model.Video;
 import java.io.IOException;
 import java.sql.SQLException;
-import javax.servlet.*;
-import javax.servlet.http.*;
+import jakarta.servlet.*;
+import jakarta.servlet.http.*;
 
 public class servletRegistroVid extends HttpServlet {
 
@@ -32,6 +28,7 @@ public class servletRegistroVid extends HttpServlet {
         String reproduccionesStr = request.getParameter("reproducciones");
         String descripcion = request.getParameter("descripcion");
         String formato = request.getParameter("formato");
+        String rutavideo = request.getParameter("rutavideo");
 
         // Validaciones
         if (titulo == null || titulo.isEmpty() ||
@@ -57,7 +54,7 @@ public class servletRegistroVid extends HttpServlet {
         }
 
         // Crear objeto Video
-        Video v = new Video(titulo, autor, fecha, duracion, reproducciones, descripcion, formato);
+        Video v = new Video(titulo, autor, fecha, duracion, reproducciones, descripcion, formato, rutavideo);
 
         // Insertar en la base de datos
         try {

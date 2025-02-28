@@ -1,16 +1,15 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Servlet.java to edit this template
- */
 package com.isdcm.minetflix.controladores;
 
-import com.isdcm.minetflix.dao.Usuarios;
+import com.isdcm.minetflix.dao.UsuarioDAO;
 import java.io.IOException;
 import java.sql.SQLException;
-import javax.servlet.*;
-import javax.servlet.http.*;
+import jakarta.servlet.*;
+import jakarta.servlet.http.*;
 import com.isdcm.minetflix.model.Usuario;
 
+import jakarta.servlet.annotation.WebServlet;
+
+@WebServlet(name = "servletUsuarios", urlPatterns = {"/servletUsuarios"})
 public class servletUsuarios extends HttpServlet {
 
     @Override

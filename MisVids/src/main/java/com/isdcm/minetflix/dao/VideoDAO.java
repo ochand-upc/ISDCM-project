@@ -12,14 +12,14 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
-import com.isdcm.minetflix.modelo.Video;
+import com.isdcm.minetflix.model.Video;
 
 public class VideoDAO {
 
-    // Ajusta la URL, usuario y contraseña a tu entorno
-    private static final String DB_URL = "jdbc:derby://localhost:1527/DBSistema;create=true";
-    private static final String DB_USER = "APP";
-    private static final String DB_PASS = "APP";
+    // Ajusta la URL, usuario y contraseña a tu entorno    
+    private static final String DB_URL = "jdbc:derby://localhost:1527/MINETFLIX;create=true";
+    private static final String DB_USER = "pr2";
+    private static final String DB_PASS = "pr2";
 
     /**
      * Inserta un nuevo registro en la tabla VIDEOS.

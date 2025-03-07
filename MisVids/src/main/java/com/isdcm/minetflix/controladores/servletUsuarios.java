@@ -42,8 +42,7 @@ public class servletUsuarios extends HttpServlet {
                 // Crear sesión
                 HttpSession sesion = request.getSession(true);
                 sesion.setAttribute("usuarioLogueado", username);
-                // Redirigir a página principal (por ejemplo, registro de vídeos)
-                response.sendRedirect("registroVid.jsp");
+                response.sendRedirect("home.jsp");
             } else {
                 request.setAttribute("mensajeError", "Credenciales incorrectas.");
                 request.getRequestDispatcher("login.jsp").forward(request, response);
@@ -97,6 +96,6 @@ public class servletUsuarios extends HttpServlet {
             e.printStackTrace();
             request.setAttribute("mensajeError", "Error al insertar en la base de datos.");
         }
-        request.getRequestDispatcher("registroUsu.jsp").forward(request, response);
+        request.getRequestDispatcher("home.jsp").forward(request, response);
     }
 }

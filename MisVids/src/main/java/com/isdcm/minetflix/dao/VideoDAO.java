@@ -2,78 +2,33 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
+
 package com.isdcm.minetflix.dao;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException; 
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 import com.isdcm.minetflix.model.Video;
+import java.io.IOException;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 public class VideoDAO {
 
-    // Ajusta la URL, usuario y contraseña a tu entorno    
-    private static final String DB_URL = "jdbc:derby://localhost:1527/MINETFLIX;create=true";
-    private static final String DB_USER = "pr2";
-    private static final String DB_PASS = "pr2";
-
-    /**
-     * Inserta un nuevo registro en la tabla VIDEOS.
-     * @param video Objeto Video con los datos a insertar
-     * @return true si la inserción fue exitosa, false si el video ya existe o hubo error
-     * @throws SQLException 
-     */
-    public static boolean insertarVideo(Video video) throws SQLException {
-        Connection conn = null;
-        PreparedStatement ps = null;
-        try {
-            conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASS);
-
-            // Si quieres evitar duplicados por Título + Autor, descomenta y usa el método existeVideo
-            // if (existeVideo(conn, video.getTitulo(), video.getAutor())) {
-            //     return false;
-            // }
-
-            String sql = "INSERT INTO VIDEOS (TITULO, AUTOR, FECHA, DURACION, REPRODUCCIONES, DESCRIPCION, FORMATO, RUTAVIDEO) "
-                       + "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
-            ps = conn.prepareStatement(sql);
-            ps.setString(1, video.getTitulo());
-            ps.setString(2, video.getAutor());
-            ps.setString(3, video.getFecha());
-            ps.setString(4, video.getDuracion());
-            ps.setInt(5, video.getReproducciones());
-            ps.setString(6, video.getDescripcion());
-            ps.setString(7, video.getFormato());
-            ps.setString(8, video.getRutavideo());
-
-            ps.executeUpdate();
-            return true;
-        } finally {
-            if (ps != null) ps.close();
-            if (conn != null) conn.close();
-        }
+    // Método para insertar un video
+    public static boolean insertarVideo(Video video) throws SQLException, IOException {
+        String sql = "INSERT INTO VIDEOS (TITULO, AUTOR, FECHA, DURACION, REPRODUCCIONES, DESCRIPCION, FORMATO, RUTAVIDEO) "
+                   + "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        return DatabaseExecutor.ejecutarUpdate(sql, video.getTitulo(), video.getAutor(), video.getFecha(),
+                                                video.getDuracion(), video.getReproducciones(), video.getDescripcion(),
+                                                video.getFormato(), video.getRutavideo());
     }
 
-    /**
-     * Devuelve una lista con todos los registros de la tabla VIDEOS.
-     * @return List<Video> con los videos encontrados
-     * @throws SQLException 
-     */
-    public static List<Video> listarVideos() throws SQLException {
+    // Método para listar todos los videos
+    public static List<Video> listarVideos() throws SQLException, IOException {
         List<Video> lista = new ArrayList<>();
-        Connection conn = null;
-        Statement st = null;
-        ResultSet rs = null;
-
-        try {
-            conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASS);
-            st = conn.createStatement();
-            rs = st.executeQuery("SELECT * FROM VIDEOS");
-
+        String sql = "SELECT * FROM VIDEOS";
+        
+        try (ResultSet rs = DatabaseExecutor.ejecutarQuery(sql)) {
             while (rs.next()) {
                 Video v = new Video();
                 v.setId(rs.getInt("ID"));
@@ -85,40 +40,17 @@ public class VideoDAO {
                 v.setDescripcion(rs.getString("DESCRIPCION"));
                 v.setFormato(rs.getString("FORMATO"));
                 v.setRutavideo(rs.getString("RUTAVIDEO"));
-
                 lista.add(v);
             }
-        } finally {
-            if (rs != null) rs.close();
-            if (st != null) st.close();
-            if (conn != null) conn.close();
         }
-
         return lista;
     }
 
-    /**
-     * Comprueba si existe un vídeo en la base de datos con el mismo título y autor.
-     * (Este método es opcional, depende de tu lógica de negocio)
-     * @param conn Conexión activa a la base de datos
-     * @param titulo Título del vídeo
-     * @param autor Autor del vídeo
-     * @return true si existe, false en caso contrario
-     * @throws SQLException 
-     */
-    private static boolean existeVideo(Connection conn, String titulo, String autor) throws SQLException {
-        PreparedStatement ps = null;
-        ResultSet rs = null;
-        try {
-            String sql = "SELECT ID FROM VIDEOS WHERE TITULO = ? AND AUTOR = ?";
-            ps = conn.prepareStatement(sql);
-            ps.setString(1, titulo);
-            ps.setString(2, autor);
-            rs = ps.executeQuery();
-            return rs.next();  // true si encuentra al menos un registro
-        } finally {
-            if (rs != null) rs.close();
-            if (ps != null) ps.close();
+    // Método para verificar si existe un video por título y autor
+    public static boolean existeVideo(String titulo, String autor) throws SQLException, IOException {
+        String sql = "SELECT ID FROM VIDEOS WHERE TITULO = ? AND AUTOR = ?";
+        try (ResultSet rs = DatabaseExecutor.ejecutarQuery(sql, titulo, autor)) {
+            return rs.next(); // true si existe un video con el mismo título y autor
         }
     }
 }

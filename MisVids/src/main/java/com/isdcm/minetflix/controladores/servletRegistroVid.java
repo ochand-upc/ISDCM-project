@@ -6,21 +6,22 @@ import com.isdcm.minetflix.model.Video;
 import java.io.IOException;
 import java.sql.SQLException;
 import jakarta.servlet.*;
+import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
+import java.util.Date;
 
+@WebServlet(name = "servletRegistroVid", urlPatterns = {"/servletRegistroVid"})
 public class servletRegistroVid extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        // Comprobar si hay sesión iniciada
         HttpSession sesion = request.getSession(false);
         if (sesion == null || sesion.getAttribute("usuarioLogueado") == null) {
             response.sendRedirect("login.jsp");
             return;
         }
 
-        // Recoger parámetros
         String titulo = request.getParameter("titulo");
         String autor = request.getParameter("autor");
         String fecha = request.getParameter("fecha");
@@ -44,11 +45,32 @@ public class servletRegistroVid extends HttpServlet {
             return;
         }
 
+        // Validar fecha actual
+        String fechaActual = new java.text.SimpleDateFormat("yyyy-MM-dd").format(new Date());
+        if (fecha.compareTo(fechaActual) > 0) {
+            request.setAttribute("mensajeError", "La fecha no puede ser mayor a la actual.");
+            request.getRequestDispatcher("registroVid.jsp").forward(request, response);
+            return;
+        }
+
         int reproducciones = 0;
         try {
             reproducciones = Integer.parseInt(reproduccionesStr);
         } catch (NumberFormatException e) {
             request.setAttribute("mensajeError", "El número de reproducciones debe ser un valor numérico.");
+            request.getRequestDispatcher("registroVid.jsp").forward(request, response);
+            return;
+        }
+        
+        // Verificar si el video ya existe
+        try {
+            if (VideoDAO.existeVideo(titulo, autor)) {
+                request.setAttribute("mensajeError", "Ya existe un video con el mismo título.");
+                request.getRequestDispatcher("registroVid.jsp").forward(request, response);
+                return;
+            }
+        } catch (SQLException e) {
+            request.setAttribute("mensajeError", "Ya existe un video con el mismo título.");
             request.getRequestDispatcher("registroVid.jsp").forward(request, response);
             return;
         }
@@ -60,15 +82,16 @@ public class servletRegistroVid extends HttpServlet {
         try {
             boolean insertado = VideoDAO.insertarVideo(v);
             if (insertado) {
-                request.setAttribute("mensajeExito", "Vídeo registrado correctamente.");
+                sesion.setAttribute("mensajeExito", "Vídeo registrado correctamente.");
+                response.sendRedirect("servletListadoVid");
             } else {
-                request.setAttribute("mensajeError", "El vídeo ya existe o hubo un error.");
+                request.setAttribute("mensajeError", "Hubo un error al registrar el video.");
+                request.getRequestDispatcher("registroVid.jsp").forward(request, response);
             }
         } catch (SQLException e) {
             e.printStackTrace();
             request.setAttribute("mensajeError", "Error al insertar en la base de datos.");
+            request.getRequestDispatcher("registroVid.jsp").forward(request, response);
         }
-
-        request.getRequestDispatcher("registroVid.jsp").forward(request, response);
     }
 }

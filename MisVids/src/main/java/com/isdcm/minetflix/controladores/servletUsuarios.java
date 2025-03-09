@@ -82,6 +82,32 @@ public class servletUsuarios extends HttpServlet {
             request.getRequestDispatcher("registroUsu.jsp").forward(request, response);
             return;
         }
+        
+        // Verificar si el username ya existe
+        try {
+            if (UsuarioDAO.existeUsername(username)) {
+                request.setAttribute("mensajeError", "Ya existe el usuario.");
+                request.getRequestDispatcher("registroUsu.jsp").forward(request, response);
+                return;
+            }
+        } catch (SQLException e) {
+            request.setAttribute("mensajeError", "Ya existe el usuario.");
+            request.getRequestDispatcher("registroUsu.jsp").forward(request, response);
+            return;
+        }
+        
+        // Verificar si el email ya existe
+        try {
+            if (UsuarioDAO.existeEmail(email)) {
+                request.setAttribute("mensajeError", "Ya existe el email.");
+                request.getRequestDispatcher("registroUsu.jsp").forward(request, response);
+                return;
+            }
+        } catch (SQLException e) {
+            request.setAttribute("mensajeError", "Ya existe el email.");
+            request.getRequestDispatcher("registroUsu.jsp").forward(request, response);
+            return;
+        }
 
         // Crear objeto Usuario
         Usuario u = new Usuario(nombre, apellidos, email, username, password);
@@ -96,6 +122,9 @@ public class servletUsuarios extends HttpServlet {
             e.printStackTrace();
             request.setAttribute("mensajeError", "Error al insertar en la base de datos.");
         }
+        // Crear sesión
+        HttpSession sesion = request.getSession(true);
+        sesion.setAttribute("usuarioLogueado", username);
         request.getRequestDispatcher("home.jsp").forward(request, response);
     }
 }

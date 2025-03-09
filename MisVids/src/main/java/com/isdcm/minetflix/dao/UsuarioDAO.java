@@ -12,12 +12,7 @@ import java.sql.SQLException;
 public class UsuarioDAO {
 
     // Método para insertar un usuario
-    public static boolean insertarUsuario(Usuario usuario) throws SQLException, IOException {
-        // Verificar si ya existe el username
-        if (existeUsername(usuario.getUsername())) {
-            return false; // Ya existe el usuario
-        }
-        
+    public static boolean insertarUsuario(Usuario usuario) throws SQLException, IOException {        
         String sql = "INSERT INTO USUARIOS (NOMBRE, APELLIDOS, EMAIL, USERNAME, PASSWORD) "
                    + "VALUES (?, ?, ?, ?, ?)";
         return DatabaseExecutor.ejecutarUpdate(sql, usuario.getNombre(), usuario.getApellidos(),
@@ -33,9 +28,17 @@ public class UsuarioDAO {
     }
 
     // Verifica si el username ya existe
-    private static boolean existeUsername(String username) throws SQLException, IOException {
+    public static boolean existeUsername(String username) throws SQLException, IOException {
         String sql = "SELECT USERNAME FROM USUARIOS WHERE USERNAME = ?";
         try (ResultSet rs = DatabaseExecutor.ejecutarQuery(sql, username)) {
+            return rs.next();
+        }
+    }
+    
+    // Verifica si el email ya existe
+    public static boolean existeEmail(String email) throws SQLException, IOException {
+        String sql = "SELECT USERNAME FROM USUARIOS WHERE EMAIL = ?";
+        try (ResultSet rs = DatabaseExecutor.ejecutarQuery(sql, email)) {
             return rs.next();
         }
     }

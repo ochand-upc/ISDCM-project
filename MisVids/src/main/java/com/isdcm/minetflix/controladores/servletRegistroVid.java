@@ -29,12 +29,13 @@ public class servletRegistroVid extends HttpServlet {
         String reproduccionesStr = request.getParameter("reproducciones");
         String descripcion = request.getParameter("descripcion");
         String formato = request.getParameter("formato");
-        String rutavideo = request.getParameter("rutavideo");
+        String rutaVideo = request.getParameter("rutaVideo");
 
         // Validaciones
         if (titulo == null || titulo.isEmpty() ||
             autor == null || autor.isEmpty() ||
             fecha == null || fecha.isEmpty() ||
+            rutaVideo == null || rutaVideo.isEmpty() ||
             duracion == null || duracion.isEmpty() ||
             reproduccionesStr == null || reproduccionesStr.isEmpty() ||
             descripcion == null || descripcion.isEmpty() ||
@@ -76,7 +77,7 @@ public class servletRegistroVid extends HttpServlet {
         }
 
         // Crear objeto Video
-        Video v = new Video(titulo, autor, fecha, duracion, reproducciones, descripcion, formato, rutavideo);
+        Video v = new Video(titulo, autor, fecha, duracion, reproducciones, descripcion, formato, rutaVideo);
 
         // Insertar en la base de datos
         try {

@@ -125,6 +125,9 @@
 
             <label>Fecha:</label>
             <input type="date" name="fecha" required />
+            
+            <label>Ruta</label>
+            <input type="text" name="rutaVideo" placeholder="/path_to_video/video.mp4" required />
 
             <label>Duración:</label>
             <input type="text" name="duracion" placeholder="Ej. 2h 15min" required />

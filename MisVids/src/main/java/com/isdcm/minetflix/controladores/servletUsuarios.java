@@ -35,9 +35,12 @@ public class servletUsuarios extends HttpServlet {
             request.getRequestDispatcher("login.jsp").forward(request, response);
             return;
         }
+        
+        // 1) Hashear la contraseña que llega del formulario
+        String hashedPassword = UsuarioDAO.hashPassword(password);
 
         try {
-            boolean valido = UsuarioDAO.validarLogin(username, password);
+            boolean valido = UsuarioDAO.validarLogin(username, hashedPassword);
             if (valido) {
                 // Crear sesión
                 HttpSession sesion = request.getSession(true);
@@ -108,9 +111,12 @@ public class servletUsuarios extends HttpServlet {
             request.getRequestDispatcher("registroUsu.jsp").forward(request, response);
             return;
         }
+        
+        // Hashear la contraseña
+        String hashedPassword = UsuarioDAO.hashPassword(password);
 
         // Crear objeto Usuario
-        Usuario u = new Usuario(nombre, apellidos, email, username, password);
+        Usuario u = new Usuario(nombre, apellidos, email, username, hashedPassword);
         try {
             boolean insertado = UsuarioDAO.insertarUsuario(u);
             if (insertado) {

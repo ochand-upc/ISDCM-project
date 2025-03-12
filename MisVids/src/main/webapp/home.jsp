@@ -77,10 +77,15 @@
         <form action="servletListadoVid">
             <button type="submit">📋 Ver Listado de Videos</button>
         </form>
-
         <form action="logout.jsp">
             <button type="submit">🚪 Cerrar Sesión</button>
         </form>
+        <p style="color: green;">
+            <%= (request.getAttribute("mensajeExito") != null) ? request.getAttribute("mensajeExito") : "" %>
+        </p>
+        <p style="color: red;">
+            <%= (request.getAttribute("mensajeError") != null) ? request.getAttribute("mensajeError") : "" %>
+        </p>
     </div>
 </body>
 </html>

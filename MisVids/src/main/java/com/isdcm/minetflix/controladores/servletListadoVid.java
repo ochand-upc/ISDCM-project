@@ -21,6 +21,15 @@ public class servletListadoVid extends HttpServlet {
            response.sendRedirect("login.jsp");
            return;
        }
+       
+       // 1) Recuperar el mensaje de éxito si existe
+       String mensajeExito = (String) sesion.getAttribute("mensajeExito");
+       if (mensajeExito != null) {
+           // Pasarlo al request
+           request.setAttribute("mensajeExito", mensajeExito);
+           // Borrarlo de sesión
+           sesion.removeAttribute("mensajeExito");
+       }
 
        try {
            // Asegúrate de que VideoDAO.listarVideos() obtenga los datos correctamente

@@ -147,7 +147,9 @@
             %>
             </tbody>
         </table>
-
+        <p style="color: green;">
+            <%= (request.getAttribute("mensajeExito") != null) ? request.getAttribute("mensajeExito") : "" %>
+        </p>   
         <a href="home.jsp" class="back-link">Volver al menú principal</a>
     </div>
 </body>

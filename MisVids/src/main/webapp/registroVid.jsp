@@ -15,103 +15,12 @@
 <html lang="es">
 <head>
     <title>Registro de Videos - MiNetflix</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #141414;
-            color: #ffffff;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-        }
-
-        .registro-container {
-            background-color: #1f1f1f;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-            width: 100%;
-            max-width: 600px;
-            text-align: center;
-        }
-
-        h2 {
-            margin-bottom: 20px;
-            color: #e50914;
-            font-size: 24px;
-        }
-
-        label {
-            display: block;
-            margin: 10px 0 5px;
-            text-align: left;
-            font-weight: bold;
-            color: #ffffff;
-        }
-
-        input[type="text"],
-        input[type="date"],
-        input[type="number"],
-        textarea,
-        select {
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 15px;
-            border: 1px solid #333;
-            border-radius: 5px;
-            background-color: #333;
-            color: #fff;
-            box-sizing: border-box;
-        }
-
-        textarea {
-            height: 80px;
-        }
-
-        input[type="submit"] {
-            background-color: #e50914;
-            color: white;
-            border: none;
-            padding: 12px 15px;
-            cursor: pointer;
-            border-radius: 5px;
-            font-size: 16px;
-            width: 100%;
-        }
-
-        input[type="submit"]:hover {
-            background-color: #b20710;
-        }
-
-        p {
-            margin-top: 15px;
-        }
-
-        .error-message {
-            color: #ff4c4c;
-            margin-top: 10px;
-        }
-
-        .success-message {
-            color: #4caf50;
-            margin-top: 10px;
-        }
-
-        .back-link {
-            margin-top: 15px;
-            display: inline-block;
-            color: #e50914;
-            text-decoration: none;
-            font-size: 14px;
-        }
-
-        .back-link:hover {
-            text-decoration: underline;
-        }
-    </style>
+    <!-- Bootstrap 5 CSS (CDN) -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" 
+          rel="stylesheet"
+          integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+          crossorigin="anonymous">
+    <link rel="stylesheet" href="css/registroVid.css">
 </head>
 <body>
     <div class="registro-container">
@@ -153,18 +62,63 @@
         </form>
 
         <% if (request.getAttribute("mensajeError") != null) { %>
-            <p class="error-message">
-                <%= request.getAttribute("mensajeError") %>
-            </p>
+            <!-- Contenedor para el toast (parte superior derecha) -->
+            <div class="position-fixed top-0 end-0 p-3" style="z-index: 9999">
+                <!-- Toast en color de fondo rojo (text-bg-danger) -->
+                <div id="errorToast" class="toast align-items-center text-bg-danger border-0"
+                     role="alert" aria-live="assertive" aria-atomic="true"
+                     data-bs-autohide="false">
+                    <div class="d-flex">
+                        <div class="toast-body">
+                            <%= request.getAttribute("mensajeError") %>
+                        </div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto"
+                                data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                </div>
+            </div>
+            <!-- Script para inicializar el toast automáticamente -->
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    var toastEl = document.getElementById('errorToast');
+                    var toast = new bootstrap.Toast(toastEl);
+                    toast.show();
+                });
+            </script>
         <% } %>
 
         <% if (request.getAttribute("mensajeExito") != null) { %>
-            <p class="success-message">
-                <%= request.getAttribute("mensajeExito") %>
-            </p>
+             <!-- Contenedor para el toast (parte superior derecha) -->
+            <div class="position-fixed top-0 end-0 p-3" style="z-index: 9999;">
+                <!-- Toast con fondo verde (text-bg-success) -->
+                <div id="successToast" class="toast align-items-center text-bg-success border-0"
+                     role="alert" aria-live="assertive" aria-atomic="true"
+                     data-bs-autohide="false">
+                    <div class="d-flex">
+                        <div class="toast-body">
+                            <%= request.getAttribute("mensajeExito") %>
+                        </div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto"
+                                data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                </div>
+            </div>
+            <!-- Script para inicializar el toast automáticamente -->
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    var toastEl = document.getElementById('successToast');
+                    var toast = new bootstrap.Toast(toastEl);
+                    toast.show();
+                });
+            </script>
         <% } %>
 
         <a href="home.jsp" class="back-link">Volver al menú principal</a>
     </div>
+        
+    <!-- Bootstrap 5 JS (CDN) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+            crossorigin="anonymous"></script>
 </body>
 </html>

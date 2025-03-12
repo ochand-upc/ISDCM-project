@@ -14,91 +14,12 @@
 <html lang="es">
 <head>
     <title>Listado de Videos - MiNetflix</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #141414;
-            color: #ffffff;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            min-height: 100vh;
-            padding-top: 30px;
-        }
-
-        .container {
-            background-color: #1f1f1f;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            width: 90%;
-            max-width: 1000px;
-            text-align: center;
-        }
-
-        h2 {
-            font-size: 28px;
-            color: #e50914;
-            margin-bottom: 20px;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 20px 0;
-            color: #ffffff;
-        }
-
-        table th, table td {
-            border: 1px solid #333;
-            padding: 10px;
-            text-align: left;
-        }
-
-        table th {
-            background-color: #e50914;
-            color: white;
-        }
-
-        table tr:nth-child(even) {
-            background-color: #2c2c2c;
-        }
-
-        table tr:nth-child(odd) {
-            background-color: #1f1f1f;
-        }
-
-        table tr:hover {
-            background-color: #333333;
-        }
-
-        .link {
-            color: #e50914;
-            text-decoration: none;
-        }
-
-        .link:hover {
-            text-decoration: underline;
-        }
-
-        .back-link {
-            margin-top: 20px;
-            display: inline-block;
-            color: #e50914;
-            text-decoration: none;
-            font-size: 14px;
-        }
-
-        .back-link:hover {
-            text-decoration: underline;
-        }
-
-        td {
-            word-break: break-word;
-        }
-    </style>
+    <!-- Bootstrap 5 CSS (CDN) -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" 
+          rel="stylesheet"
+          integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+          crossorigin="anonymous">
+    <link rel="stylesheet" href="css/listadoVid.css">
 </head>
 <body>
     <div class="container">
@@ -147,10 +68,66 @@
             %>
             </tbody>
         </table>
-        <p style="color: green;">
-            <%= (request.getAttribute("mensajeExito") != null) ? request.getAttribute("mensajeExito") : "" %>
-        </p>   
+            
+        <% if (request.getAttribute("mensajeError") != null) { %>
+            <!-- Contenedor para el toast (parte superior derecha) -->
+            <div class="position-fixed top-0 end-0 p-3" style="z-index: 9999">
+                <!-- Toast en color de fondo rojo (text-bg-danger) -->
+                <div id="errorToast" class="toast align-items-center text-bg-danger border-0"
+                     role="alert" aria-live="assertive" aria-atomic="true"
+                     data-bs-autohide="false">
+                    <div class="d-flex">
+                        <div class="toast-body">
+                            <%= request.getAttribute("mensajeError") %>
+                        </div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto"
+                                data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                </div>
+            </div>
+            <!-- Script para inicializar el toast automáticamente -->
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    var toastEl = document.getElementById('errorToast');
+                    var toast = new bootstrap.Toast(toastEl);
+                    toast.show();
+                });
+            </script>
+        <% } %>
+
+        <% if (request.getAttribute("mensajeExito") != null) { %>
+             <!-- Contenedor para el toast (parte superior derecha) -->
+            <div class="position-fixed top-0 end-0 p-3" style="z-index: 9999;">
+                <!-- Toast con fondo verde (text-bg-success) -->
+                <div id="successToast" class="toast align-items-center text-bg-success border-0"
+                     role="alert" aria-live="assertive" aria-atomic="true"
+                     data-bs-autohide="false">
+                    <div class="d-flex">
+                        <div class="toast-body">
+                            <%= request.getAttribute("mensajeExito") %>
+                        </div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto"
+                                data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                </div>
+            </div>
+            <!-- Script para inicializar el toast automáticamente -->
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    var toastEl = document.getElementById('successToast');
+                    var toast = new bootstrap.Toast(toastEl);
+                    toast.show();
+                });
+            </script>
+        <% } %>
+        
+        
         <a href="home.jsp" class="back-link">Volver al menú principal</a>
     </div>
+        
+    <!-- Bootstrap 5 JS (CDN) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+            crossorigin="anonymous"></script>
 </body>
 </html>

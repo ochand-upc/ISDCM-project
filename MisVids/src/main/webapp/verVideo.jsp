@@ -4,7 +4,7 @@
     Author     : parallels
 --%>
 
-<%@ page session="true" %>
+<%@ page session="true" import="com.isdcm.minetflix.utils.Utils"%>
 <%
     com.isdcm.minetflix.model.Video video = (com.isdcm.minetflix.model.Video) request.getAttribute("video");
     if (video == null) {
@@ -28,11 +28,36 @@
         
         <div class="d-flex justify-content-center">
             <% if ("YOUTUBE".equals(video.getTipoFuente())) { %>
-                <iframe width="800" height="450" 
-                        src="<%= rutaVideo %>" 
-                        frameborder="0" 
-                        allowfullscreen>
-                </iframe>
+                <div id="player"></div>
+                <script>
+                    var player;
+                    var reproduccionRegistrada = false;  
+                    
+                    function onYouTubeIframeAPIReady() {
+                        player = new YT.Player("player", {
+                            height: "450",
+                            width: "800",
+                            videoId: '<%= Utils.extraerYouTubeId(video.getRutaVideo()) %>',
+                            events: {
+                                onStateChange: onPlayerStateChange
+                            }
+                        });
+                    }
+                    
+                    function onPlayerStateChange(event) {
+                        if (event.data === YT.PlayerState.PLAYING && !reproduccionRegistrada) {
+                            reproduccionRegistrada = true;
+                            
+                            fetch("servletVerVideo?id=<%= video.getId() %>&accion=reproducido", {
+                                method: "POST"
+                            })
+                        }
+                    }
+                </script>
+                <script src="https://www.youtube.com/iframe_api"></script>
+
+                    <!-- Cargar la API de YouTube -->
+                    <script src="https://www.youtube.com/iframe_api"></script>
             <% } else { %>
                 <video width="800" height="450" controls>
                     <source src="<%= rutaVideo %>" type="<%= video.getMimeType() %>">

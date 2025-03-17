@@ -1,6 +1,6 @@
 package com.isdcm.minetflix.controladores;
 
-import com.isdcm.minetflix.dao.VideoDAO;
+import com.isdcm.minetflix.utils.VideoPlaybackManager;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -14,15 +14,12 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-import java.sql.SQLException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 @WebServlet(name = "servletStreamVideo", urlPatterns = {"/servletStreamVideo"})
 public class servletStreamVideo extends HttpServlet {
 
     private static final String VIDEO_STORAGE_PATH = "/opt/uploads/videos/";
-    private boolean contadorIncrementado = false;
+    private static final double MIN_PERCENTAGE_PLAYED = 0.10;
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -34,16 +31,25 @@ public class servletStreamVideo extends HttpServlet {
             response.sendRedirect("login.jsp");
             return;
         }
-        
-        String videoId = request.getParameter("id");
-        incrementarReproduccionesVideo(videoId);
 
-        // Obtener el nombre del archivo de video
         String fileName = request.getParameter("file");
-        if (fileName == null || fileName.isEmpty()) {
-            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Parámetro 'file' faltante.");
+        String videoIdParam = request.getParameter("id");
+
+        if (fileName == null || fileName.isEmpty() || videoIdParam == null) {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Parámetros 'file' o 'id' faltantes.");
             return;
         }
+
+        int videoId;
+        try {
+            videoId = Integer.parseInt(videoIdParam);
+        } catch (NumberFormatException e) {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "ID de video inválido.");
+            return;
+        }
+
+        // Usar VideoPlaybackManager para registrar la reproducción
+        VideoPlaybackManager.getInstance().registrarReproduccion(session, videoId);
 
         // Construir la ruta del archivo de video
         File videoFile = new File(VIDEO_STORAGE_PATH, fileName);
@@ -52,39 +58,40 @@ public class servletStreamVideo extends HttpServlet {
             return;
         }
 
-        // Detectar el MIME type del video (ejemplo: video/mp4, video/mkv, etc.)
+        // Detectar el MIME type del video
         Path filePath = Paths.get(videoFile.getAbsolutePath());
         String mimeType = Files.probeContentType(filePath);
         if (mimeType == null) {
-            mimeType = "video/octet-stream"; // Si no se detecta, se usa un tipo genérico
+            mimeType = "video/octet-stream"; // Tipo genérico si no se detecta
         }
 
         // Configurar la respuesta HTTP
         response.setContentType(mimeType);
         response.setContentLengthLong(videoFile.length());
-        response.setHeader("Accept-Ranges", "bytes");  // Soporte para streaming progresivo
+        response.setHeader("Accept-Ranges", "bytes");
 
-        // Enviar el video en fragmentos (streaming)
+        // Streaming de video
+        long totalBytes = videoFile.length();
+        long bytesReproducidos = 0;
+        long minBytesToCount = (long) (totalBytes * MIN_PERCENTAGE_PLAYED); // 10% del total
+
+        boolean contadorIncrementado = false;
+
         try (FileInputStream fis = new FileInputStream(videoFile);
              OutputStream os = response.getOutputStream()) {
 
             byte[] buffer = new byte[4096];
             int bytesRead;
+
             while ((bytesRead = fis.read(buffer)) != -1) {
                 os.write(buffer, 0, bytesRead);
+                bytesReproducidos += bytesRead;
+
+                if (!contadorIncrementado && bytesReproducidos >= minBytesToCount) {
+                    contadorIncrementado = true;
+                    VideoPlaybackManager.getInstance().registrarReproduccion(session, videoId);
+                }
             }
-        }
-    }
-    
-    private void incrementarReproduccionesVideo(String videoId){
-        try {
-            if (!contadorIncrementado && VideoDAO.incrementarReproducciones(Integer.parseInt(videoId))) {
-                contadorIncrementado = true;
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } catch (IOException ex) {
-            ex.printStackTrace();
         }
     }
 }

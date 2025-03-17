@@ -42,6 +42,11 @@ public class servletRegistroVid extends HttpServlet {
         String fechaStr = request.getParameter("fecha").trim();
         String descripcion = request.getParameter("descripcion").trim();
         String tipoVideo = request.getParameter("tipoVideo").trim();
+        
+        request.setAttribute("titulo", titulo);
+        request.setAttribute("autor", autor);
+        request.setAttribute("fecha", fechaStr);
+        request.setAttribute("descripcion", descripcion);
 
         // Validaciones básicas
         if (titulo.isEmpty() || autor.isEmpty() || fechaStr.isEmpty() || descripcion.isEmpty() || tipoVideo.isEmpty()) {

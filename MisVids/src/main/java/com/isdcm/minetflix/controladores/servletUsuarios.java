@@ -65,6 +65,11 @@ public class servletUsuarios extends HttpServlet {
         String username = request.getParameter("username");
         String password = request.getParameter("password");
         String password2 = request.getParameter("password2");
+        
+        request.setAttribute("nombre", nombre);
+        request.setAttribute("apellidos", apellidos);
+        request.setAttribute("email", email);
+        request.setAttribute("username", username);
 
         // Validar campos vacíos o formatos
         if (nombre == null || nombre.isEmpty() ||
@@ -89,12 +94,12 @@ public class servletUsuarios extends HttpServlet {
         // Verificar si el username ya existe
         try {
             if (UsuarioDAO.existeUsername(username)) {
-                request.setAttribute("mensajeError", "Ya existe el usuario.");
+                request.setAttribute("mensajeError", "Ya existe el usuario " + username +".");
                 request.getRequestDispatcher("registroUsu.jsp").forward(request, response);
                 return;
             }
         } catch (SQLException e) {
-            request.setAttribute("mensajeError", "Ya existe el usuario.");
+            request.setAttribute("mensajeError", "Ya existe el usuario " + username + ".");
             request.getRequestDispatcher("registroUsu.jsp").forward(request, response);
             return;
         }
@@ -102,12 +107,12 @@ public class servletUsuarios extends HttpServlet {
         // Verificar si el email ya existe
         try {
             if (UsuarioDAO.existeEmail(email)) {
-                request.setAttribute("mensajeError", "Ya existe el email.");
+                request.setAttribute("mensajeError", "Ya existe el email <" + email + ">.");
                 request.getRequestDispatcher("registroUsu.jsp").forward(request, response);
                 return;
             }
         } catch (SQLException e) {
-            request.setAttribute("mensajeError", "Ya existe el email.");
+            request.setAttribute("mensajeError", "Ya existe el email <" + email + ">.");
             request.getRequestDispatcher("registroUsu.jsp").forward(request, response);
             return;
         }
@@ -122,11 +127,11 @@ public class servletUsuarios extends HttpServlet {
             if (insertado) {
                 request.setAttribute("mensajeExito", "Usuario registrado correctamente.");
             } else {
-                request.setAttribute("mensajeError", "El nombre de usuario ya existe.");
+                request.setAttribute("mensajeError", "El nombre de usuario ya existe <" + username + ">.");
             }
         } catch (SQLException e) {
             e.printStackTrace();
-            request.setAttribute("mensajeError", "Error al insertar en la base de datos.");
+            request.setAttribute("mensajeError", "Error al registrar usuario en la base de datos.");
         }
         // Crear sesión
         HttpSession sesion = request.getSession(true);

@@ -27,16 +27,24 @@
             <h2>Registrar nuevo video</h2>
             <form action="servletRegistroVid" method="post" enctype="multipart/form-data">   
                 <label>Título:</label>
-                <input type="text" name="titulo" required />
+                <input type="text" name="titulo" 
+                       value="<%= request.getAttribute("titulo") != null ? request.getAttribute("titulo") : "" %>"
+                       required />
 
                 <label>Autor:</label>
-                <input type="text" name="autor" required />
+                <input type="text" name="autor" 
+                       value="<%= request.getAttribute("autor") != null ? request.getAttribute("autor") : "" %>"
+                       required />
 
                 <label>Fecha:</label>
-                <input type="date" name="fecha" required />
+                <input type="date" name="fecha"
+                       value="<%= request.getAttribute("fecha") != null ? request.getAttribute("fecha") : "" %>"
+                       required />
 
                 <label>Descripción:</label>
-                <textarea name="descripcion" placeholder="Añade una breve descripción del video"></textarea>
+                <textarea name="descripcion" 
+                          value="<%= request.getAttribute("descripcion") != null ? request.getAttribute("descripcion") : "" %>"
+                          placeholder="Añade una breve descripción del video"></textarea>
 
                 <label>Tipo de Video:</label>
                 <select id="tipoVideo" name="tipoVideo" required>

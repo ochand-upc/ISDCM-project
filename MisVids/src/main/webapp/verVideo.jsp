@@ -42,10 +42,9 @@
                     function onPlayerStateChange(event) {
                         if (event.data === YT.PlayerState.PLAYING && !reproduccionRegistrada) {
                             reproduccionRegistrada = true;
-                            
                             fetch("servletVerVideo?id=<%= video.getId() %>&accion=reproducido", {
                                 method: "POST"
-                            })
+                            });
                         }
                     }
                 </script>
@@ -72,7 +71,7 @@
         <!-- Toasts de mensajes de error y éxito -->
         <% if (request.getAttribute("mensajeError") != null || request.getAttribute("mensajeExito") != null) { %>
             <div class="position-fixed top-0 end-0 p-3" style="z-index: 9999;">
-                <div id="mensajeToast" class="toast align-items-center text-bg-<%= request.getAttribute("mensajeError") != null ? "danger" : "success" %> border-0"
+                <div id="errorToast" class="toast align-items-center text-bg-<%= request.getAttribute("mensajeError") != null ? "danger" : "success" %> border-0"
                      role="alert" aria-live="assertive" aria-atomic="true" data-bs-autohide="false">
                     <div class="d-flex">
                         <div class="toast-body">
@@ -85,7 +84,7 @@
             </div>
             <script>
                 document.addEventListener('DOMContentLoaded', function() {
-                    var toast = new bootstrap.Toast(document.getElementById('mensajeToast'));
+                    var toast = new bootstrap.Toast(document.getElementById('errorToast'));
                     toast.show();
                 });
             </script>

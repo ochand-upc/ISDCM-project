@@ -23,7 +23,7 @@
 </head>
 <body>
     <div class="container">
-        <h2>Bienvenido a MiNetflix</h2>
+        <h2>Bienvenido <%= session.getAttribute("usuarioLogueado") %> a MiNetflix</h2>
         <p>Seleccione una opción:</p>
 
         <form action="registroVid.jsp">

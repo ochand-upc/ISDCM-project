@@ -42,18 +42,12 @@ INSERT INTO "PR2".USUARIOS (NOMBRE, APELLIDOS, EMAIL, USERNAME, PASSWORD)
 VALUES 
     ('Juan', 'Pérez', 'juan.perez@example.com', 'juanp', '03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4'),
     ('Jose', 'Pérez', 'jose.perez@example.com', 'josep', '03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4'),
-    ('María', 'Gómez', 'maria.gomez@example.com', 'mariag', '03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4'),
-    ('Pedro', 'López', 'pedro.lopez@example.com', 'pedrol', 'pas03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4sPedro'),
-    ('Ana', 'Martínez', 'ana.martinez@example.com', 'anam', '03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4'),
-    ('Carlos', 'Sánchez', 'carlos.sanchez@example.com', 'carloss', '03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4');
+    ('Oliver', 'Chan', 'oliver.chan@example.com', 'oliverc', '03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4'),
+    ('Carlos', 'Rodriguez', 'carlos.rodriguez@example.com', 'carlosrod', '03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4');
 
 -- Insertar datos de videos
 INSERT INTO "PR2".VIDEOS (TITULO, AUTOR, FECHA, DURACION, REPRODUCCIONES, DESCRIPCION, MIME_TYPE, RUTAVIDEO, TIPO_FUENTE, TAMANO)
 VALUES 
-    ('Big Buck Bunny', 'Peach Open Movie', '2023-02-21', 10, 120, 'Cortometraje animado libre', 'video/mp4', '/videos/bigbuckbunny.mp4', 'LOCAL', 0),
-    ('Sintel', 'Blender Foundation', '2023-02-20', 1, 80, 'Cortometraje animado', 'video/mp4', '/videos/sintel.mp4', 'LOCAL', 209715200),
-    ('Tears of Steel', 'Blender Foundation', '2023-02-19', 15000, 50, 'Cortometraje de ciencia ficción', 'video/mkv', '/videos/tearsofsteel.mkv', 'LOCAL', 0),
-    ('Elephants Dream', 'Blender Foundation', '2023-02-18', 10000, 70, 'Cortometraje experimental', 'video/ogg', '/videos/elephantsdream.ogg', 'LOCAL', 0),
-    ('Tears of Steel 2', 'Blender Foundation', '2023-02-17', 10000, 35, 'Secuela de ciencia ficción', 'video/mp4', '/videos/tearsofsteel2.mp4', 'LOCAL', 0),
-    ('Historia de la IA', 'Documentary Channel', '2023-02-16', 10000, 10, 'Documental sobre la inteligencia artificial', 'youtube', 'https://www.youtube.com/embed/WCM0h9TX7cY?si=vrUsnpMBpi2hd3D7', 'YOUTUBE', 0),
-    ('El Universo', 'Space Channel', '2023-02-15', 0, 5, 'Exploración del cosmos', 'youtube', 'https://www.youtube.com/embed/cf4GUMjJn58?si=VPFp-Ovgeh-MkEIq', 'YOUTUBE', 0);
+    ('Capitán América: un nuevo mundo', 'Marvel', '2023-01-01 10:00:00', 157.709, 3500, 'Captain America: Brave New World o Capitán América: Un Nuevo Mundo en Hispanoamérica es una película de superhéroes estadounidense de 2025, con el personaje de Marvel Comics, Sam Wilson / Capitán América.', 'video/mp4', '/opt/uploads/videos/31f73d73d02994a0f4b7930314632d97e2cc56dca09d32255deef42431982b26', 'LOCAL', 11200000),
+    ('Historia de la IA', 'Documentary Channel', '2024-01-01 11:00:00', 0, 1000, 'Documental sobre la inteligencia artificial', 'youtube', 'https://www.youtube.com/embed/WCM0h9TX7cY?si=vrUsnpMBpi2hd3D7', 'YOUTUBE', 0),
+    ('El Universo', 'Space Channel', '2025-01-01 13:00:00', 0, 5000, 'Exploración del cosmos', 'youtube', 'https://www.youtube.com/embed/cf4GUMjJn58?si=VPFp-Ovgeh-MkEIq', 'YOUTUBE', 0);

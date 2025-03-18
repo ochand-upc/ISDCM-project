@@ -16,12 +16,12 @@ public class DBConnection {
     
     private static Connection conn;
     
-    //private static final String PROPERTIES_FILE = "src/main/java/resources/DB.properties";
-    private static final String PROPERTIES_FILE = "config/DB.properties";
+    private static final String PROPERTIES_FILE = System.getProperty("config.path");
+
     
     public static Connection obtenerConexion() throws SQLException, IOException {
         if (conn == null || conn.isClosed()) {
-            /*Properties prop = new Properties();
+            Properties prop = new Properties();
             
             // Cargar las propiedades desde el archivo
             try (InputStream input = new FileInputStream(PROPERTIES_FILE)) {
@@ -30,11 +30,8 @@ public class DBConnection {
             
             String dbUrl = prop.getProperty("db.url");
             String dbUser = prop.getProperty("db.user");
-            String dbPass = prop.getProperty("db.pass");*/
+            String dbPass = prop.getProperty("db.pass");
             
-            String dbUrl = "jdbc:derby://localhost:1527/MINETFLIX;create=true";
-            String dbUser = "pr2";
-            String dbPass = "pr2";
             
             // Crear la conexión usando las propiedades
             conn = DriverManager.getConnection(dbUrl, dbUser, dbPass);

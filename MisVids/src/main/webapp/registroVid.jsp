@@ -56,7 +56,44 @@
                 <div id="campoArchivo" style="display: none;">
                     <label>Subir Video:</label>
                     <!--<input type="file" name="archivoVideo" accept="video/*"/>-->
-                    <input type="file" name="archivoVideo" accept="video/mp4"/>
+                    <input type="file" id="archivoVideo" name="archivoVideo" accept="video/mp4" onchange="validarTamanio()"/>
+                    <div class="position-fixed top-0 end-0 p-3" style="z-index: 9999">
+                    <div id="errorFileToast" class="toast align-items-center text-bg-danger border-0"
+                         role="alert" aria-live="assertive" aria-atomic="true"
+                         data-bs-autohide="false">
+                            <div class="d-flex">
+                                <div class="toast-body">
+                                    <!-- Mensaje dinámico -->
+                                </div>
+                                <button type="button" class="btn-close btn-close-white me-2 m-auto"
+                                        data-bs-dismiss="toast" aria-label="Close"></button>
+                            </div>
+                        </div>
+                    </div>
+                    <script>
+                        function validarTamanio() {
+                            const input = document.getElementById("archivoVideo");
+                            const file = input.files[0];
+                            const maxSizeMB = 50; // Límite en MB
+                            const maxSizeBytes = maxSizeMB * 1024 * 1024;
+                            const toastEl = document.getElementById("errorFileToast");
+                            const toastBody = toastEl.querySelector(".toast-body");
+                            const toast = new bootstrap.Toast(toastEl);
+
+                            if (file && file.size > maxSizeBytes) {
+                                // Actualizar el mensaje del toast
+                                toastBody.textContent = "El archivo supera los 50MB permitidos.";
+                                toastEl.classList.remove("text-bg-success");
+                                toastEl.classList.add("text-bg-danger");
+
+                                // Mostrar el toast
+                                toast.show();
+
+                                // Borrar el archivo para evitar el envío
+                                input.value = "";
+                            }
+                        }
+                    </script>
                 </div>
 
                 <div id="campoYoutube" style="display: none;">

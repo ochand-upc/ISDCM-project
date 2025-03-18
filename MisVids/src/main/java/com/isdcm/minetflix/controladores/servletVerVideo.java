@@ -2,6 +2,7 @@ package com.isdcm.minetflix.controladores;
 
 import com.isdcm.minetflix.dao.VideoDAO;
 import com.isdcm.minetflix.model.Video;
+import com.isdcm.minetflix.utils.Utils;
 import com.isdcm.minetflix.utils.VideoPlaybackManager;
 import java.io.IOException;
 import java.sql.SQLException;
@@ -13,8 +14,6 @@ import java.io.File;
 @WebServlet(name = "servletVerVideo", urlPatterns = {"/servletVerVideo"})
 public class servletVerVideo extends HttpServlet {
     
-    private static final String VIDEO_STORAGE_PATH = "/opt/uploads/videos/";
-
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -45,7 +44,7 @@ public class servletVerVideo extends HttpServlet {
             // Determinar la URL del video
             String rutaVideo;
             if ("LOCAL".equals(video.getTipoFuente())) {
-                String fileName = new File(VIDEO_STORAGE_PATH + video.getRutaVideo()).getName();
+                String fileName = new File(Utils.getVideoStoragePath() + video.getRutaVideo()).getName();
                 rutaVideo = "/MisVids/servletStreamVideo?id="+ video.getId() + "&file=" + fileName;
                 request.setAttribute("fileName", fileName);
             } else { // Significa que es de youtube

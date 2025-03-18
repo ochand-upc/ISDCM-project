@@ -1,5 +1,6 @@
 package com.isdcm.minetflix.controladores;
 
+import com.isdcm.minetflix.utils.Utils;
 import com.isdcm.minetflix.utils.VideoPlaybackManager;
 import java.io.File;
 import java.io.FileInputStream;
@@ -18,7 +19,6 @@ import jakarta.servlet.http.HttpSession;
 @WebServlet(name = "servletStreamVideo", urlPatterns = {"/servletStreamVideo"})
 public class servletStreamVideo extends HttpServlet {
 
-    private static final String VIDEO_STORAGE_PATH = "/opt/uploads/videos/";
     private static final double MIN_PERCENTAGE_PLAYED = 0.10;
 
     @Override
@@ -49,7 +49,7 @@ public class servletStreamVideo extends HttpServlet {
         }
 
         // Construir la ruta del archivo de video
-        File videoFile = new File(VIDEO_STORAGE_PATH, fileName);
+        File videoFile = new File(Utils.getVideoStoragePath(), fileName);
         if (!videoFile.exists() || !videoFile.isFile()) {
             response.sendError(HttpServletResponse.SC_NOT_FOUND, "Archivo no encontrado.");
             return;

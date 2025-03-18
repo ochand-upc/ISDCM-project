@@ -26,8 +26,9 @@ import java.util.Date;
 @WebServlet(name = "servletRegistroVid", urlPatterns = {"/servletRegistroVid"})
 public class servletRegistroVid extends HttpServlet {
     
-    private static final String VIDEO_STORAGE_PATH = "/opt/uploads/videos/";
-
+    private static final long MAX_VIDEO_SIZE = 50 * 1024 * 1024;
+    private static final long MAX_REQUEST_SIZE = 100 * 1024 * 1024;
+    
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -36,6 +37,15 @@ public class servletRegistroVid extends HttpServlet {
             response.sendRedirect("login.jsp");
             return;
         }
+        
+        if (request.getContentLengthLong() > MAX_REQUEST_SIZE) {
+            request.setAttribute("mensajeError", "La solicitud supera el tamaño máximo permitido (100MB).");
+            request.getRequestDispatcher("registroVid.jsp").forward(request, response);
+            return;
+        }
+        System.out.println("Request: " + request.toString());
+        request.setAttribute("mensajeError", request.toString());
+
 
         String titulo = request.getParameter("titulo").trim();
         String autor = request.getParameter("autor").trim();
@@ -90,7 +100,19 @@ public class servletRegistroVid extends HttpServlet {
         Long tamano = null;  // Puede ser NULL para videos de YouTube
 
         if ("archivo".equals(tipoVideo)) {
-            Part archivoPart = request.getPart("archivoVideo");
+            Part archivoPart = null;
+            
+            try {
+                archivoPart = request.getPart("archivoVideo");
+            } catch (IllegalStateException e) {
+                request.setAttribute("mensajeError", "El archivo excede el tamaño máximo permitido.");
+                request.getRequestDispatcher("registroVid.jsp").forward(request, response);
+            } catch (Exception e) {
+                e.printStackTrace();
+                request.setAttribute("mensajeError", "Error al procesar el archivo.");
+                request.getRequestDispatcher("registroVid.jsp").forward(request, response);
+            }
+            
             if (archivoPart == null || archivoPart.getSize() == 0) {
                 request.setAttribute("mensajeError", "Debe seleccionar un archivo de video.");
                 request.getRequestDispatcher("registroVid.jsp").forward(request, response);
@@ -104,10 +126,10 @@ public class servletRegistroVid extends HttpServlet {
             String nombreArchivo = autor.replaceAll("\\s+", "_") + "_" + titulo.replaceAll("\\s+", "_") + "_" + nombreOriginal;
 
             // Definir la ruta donde se guardará el archivo
-            Path rutaDestino = Paths.get(VIDEO_STORAGE_PATH, Utils.hashString(nombreArchivo));
+            Path rutaDestino = Paths.get(Utils.getVideoStoragePath(), Utils.hashString(nombreArchivo));
 
             // Asegurarse de que la carpeta existe
-            File directorio = new File(VIDEO_STORAGE_PATH);
+            File directorio = new File(Utils.getVideoStoragePath());
             if (!directorio.exists()) {
                 directorio.mkdirs();  // Crear la carpeta si no existe
             }
@@ -160,6 +182,25 @@ public class servletRegistroVid extends HttpServlet {
 
         sesion.setAttribute("mensajeExito", "Vídeo registrado correctamente.");
         response.sendRedirect("servletListadoVid");
+    }
+    
+    private Part getFilePart(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException{
+        
+        Part archivoPart = request.getPart("archivoVideo");
+
+        if (archivoPart == null || archivoPart.getSize() == 0) {
+            request.setAttribute("mensajeError", "Debe seleccionar un archivo.");
+            request.getRequestDispatcher("registroVid.jsp").forward(request, response);
+        }
+
+        // Validar si el archivo supera el tamaño permitido
+        if (archivoPart.getSize() > MAX_VIDEO_SIZE) {
+            request.setAttribute("mensajeError", "El archivo es demasiado grande. Máximo permitido: 50MB.");
+            request.getRequestDispatcher("registroVid.jsp").forward(request, response);
+        }
+
+        return archivoPart;
+        
     }
     
 }

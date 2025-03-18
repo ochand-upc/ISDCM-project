@@ -15,7 +15,13 @@ import java.security.NoSuchAlgorithmException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import net.bramp.ffmpeg.FFprobe;
+import net.bramp.ffmpeg.probe.FFmpegProbeResult;
+
 public class Utils {
+    
+    private static final String VIDEO_STORAGE_PATH = "/opt/uploads/videos/";
+    
     public static String hashString(String value) {
         try {
             MessageDigest md = MessageDigest.getInstance("SHA-256");
@@ -42,26 +48,15 @@ public class Utils {
         }
 
         try {
-            // Comando ffprobe para obtener la duración del video en segundos
-            ProcessBuilder processBuilder = new ProcessBuilder(
-                "ffprobe", "-i", file.getAbsolutePath(),
-                "-show_entries", "format=duration",
-                "-v", "quiet",
-                "-of", "csv=p=0"
-            );
-
-            Process process = processBuilder.start();
-            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-            String durationString = reader.readLine();
-            process.waitFor();
-
-            if (durationString != null && !durationString.isEmpty()) {
-                return Double.parseDouble(durationString);
-            }
-        } catch (IOException | InterruptedException | NumberFormatException e) {
+            // Crea un objeto FFprobe sin especificar rutas locales
+            FFprobe ffprobe = new FFprobe();
+            FFmpegProbeResult probeResult = ffprobe.probe(file.getAbsolutePath());
+            
+            // Retorna la duración en segundos
+            return probeResult.getFormat().duration;
+        } catch (IOException e) {
             e.printStackTrace();
         }
-
         return 0;
     }
         
@@ -78,5 +73,9 @@ public class Utils {
         Pattern pattern = Pattern.compile(regex);
         Matcher matcher = pattern.matcher(url);
         return matcher.find() ? matcher.group(1) : "";
+    }
+    
+    public static String getVideoStoragePath() {
+        return VIDEO_STORAGE_PATH;
     }
 }

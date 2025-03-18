@@ -1,12 +1,16 @@
-DROP SCHEMA IF EXISTS "PR2" CASCADE;
+-- Eliminar tablas si existen (Derby NO permite IF EXISTS, así que eliminamos directamente)
+DROP TABLE "PR2".USUARIOS;
+DROP TABLE "PR2".VIDEOS;
 
--- Crear esquema pr2
+-- Eliminar esquema si no tiene tablas (Derby no permite DROP SCHEMA IF EXISTS)
+DROP SCHEMA "PR2" RESTRICT;
+
+-- Crear esquema
 CREATE SCHEMA "PR2";
 
--- Crear tabla de videos
-CREATE TABLE "PR2".USUARIOS
-(
-    ID INTEGER GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1) NOT NULL PRIMARY KEY,
+-- Crear tabla de usuarios
+CREATE TABLE "PR2".USUARIOS (
+    ID INTEGER GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1) PRIMARY KEY,
     NOMBRE VARCHAR(100),
     APELLIDOS VARCHAR(100),
     EMAIL VARCHAR(100),
@@ -18,36 +22,32 @@ ALTER TABLE "PR2".USUARIOS
 ALTER COLUMN "PASSWORD"
 SET DATA TYPE VARCHAR(500);
 
-
 -- Crear tabla de videos
-CREATE TABLE "PR2".VIDEOS
-(
-    ID INTEGER NOT NULL GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1),
+CREATE TABLE "PR2".VIDEOS (
+    ID INTEGER GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1) PRIMARY KEY,
     TITULO VARCHAR(100) NOT NULL,
     AUTOR VARCHAR(100) NOT NULL,
-    FECHA VARCHAR(10),
-    DURACION VARCHAR(10),
-    REPRODUCCIONES INTEGER,
+    FECHA VARCHAR(30),
+    DURACION DECIMAL(10,3),
+    REPRODUCCIONES INTEGER DEFAULT 0,
     DESCRIPCION VARCHAR(255),
-    FORMATO VARCHAR(10),
-    RUTAVIDEO VARCHAR(255),
-    PRIMARY KEY (ID)
+    MIME_TYPE VARCHAR(30),
+    RUTAVIDEO VARCHAR(255) NOT NULL,
+    TIPO_FUENTE VARCHAR(10) NOT NULL CHECK (TIPO_FUENTE IN ('LOCAL', 'YOUTUBE', 'OTRO')),
+    TAMANO BIGINT
 );
 
 -- Insertar datos de usuarios
 INSERT INTO "PR2".USUARIOS (NOMBRE, APELLIDOS, EMAIL, USERNAME, PASSWORD)
 VALUES 
-('Juan', 'Pérez', 'juan.perez@example.com', 'juanp', '1234'),
-('María', 'Gómez', 'maria.gomez@example.com', 'mariag', 'maria123'),
-('Pedro', 'López', 'pedro.lopez@example.com', 'pedrol', 'passPedro'),
-('Ana', 'Martínez', 'ana.martinez@example.com', 'anam', 'anaPass'),
-('Carlos', 'Sánchez', 'carlos.sanchez@example.com', 'carloss', 'carlosPass');
+    ('Juan', 'Pérez', 'juan.perez@example.com', 'juanp', '03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4'),
+    ('Jose', 'Pérez', 'jose.perez@example.com', 'josep', '03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4'),
+    ('Oliver', 'Chan', 'oliver.chan@example.com', 'oliverc', '03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4'),
+    ('Carlos', 'Rodriguez', 'carlos.rodriguez@example.com', 'carlosrod', '03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4');
 
 -- Insertar datos de videos
-INSERT INTO "PR2".VIDEOS (TITULO, AUTOR, FECHA, DURACION, REPRODUCCIONES, DESCRIPCION, FORMATO, RUTAVIDEO)
+INSERT INTO "PR2".VIDEOS (TITULO, AUTOR, FECHA, DURACION, REPRODUCCIONES, DESCRIPCION, MIME_TYPE, RUTAVIDEO, TIPO_FUENTE, TAMANO)
 VALUES 
-('Big Buck Bunny', 'Peach Open Movie', '2023-02-21', '09:56', 120, 'Cortometraje animado libre', 'mp4', '/videos/bigbuckbunny.mp4'),
-('Sintel', 'Blender Foundation', '2023-02-20', '14:48', 80, 'Cortometraje animado', 'mp4', '/videos/sintel.mp4'),
-('Tears of Steel', 'Blender Foundation', '2023-02-19', '12:14', 50, 'Cortometraje de ciencia ficción', 'mkv', '/videos/tearsofsteel.mkv'),
-('Elephants Dream', 'Blender Foundation', '2023-02-18', '10:53', 70, 'Cortometraje experimental', 'ogg', '/videos/elephantsdream.ogg'),
-('Tears of Steel 2', 'Blender Foundation', '2023-02-17', '13:14', 35, 'Secuela de ciencia ficción', 'mp4', '/videos/tearsofsteel2.mp4');
+    ('Capitán América: un nuevo mundo', 'Marvel', '2023-01-01 10:00:00', 157.709, 3500, 'Captain America: Brave New World o Capitán América: Un Nuevo Mundo en Hispanoamérica es una película de superhéroes estadounidense de 2025, con el personaje de Marvel Comics, Sam Wilson / Capitán América.', 'video/mp4', 'videos/inicial_31f73d73d02994a0f4b7930314632d97e2cc56dca09d32255deef42431982b26', 'LOCAL', 11200000),
+    ('Historia de la IA', 'Documentary Channel', '2024-01-01 11:00:00', 0, 1000, 'Documental sobre la inteligencia artificial', 'youtube', 'https://www.youtube.com/embed/WCM0h9TX7cY?si=vrUsnpMBpi2hd3D7', 'YOUTUBE', 0),
+    ('El Universo', 'Space Channel', '2025-01-01 13:00:00', 0, 5000, 'Exploración del cosmos', 'youtube', 'https://www.youtube.com/embed/cf4GUMjJn58?si=VPFp-Ovgeh-MkEIq', 'YOUTUBE', 0);

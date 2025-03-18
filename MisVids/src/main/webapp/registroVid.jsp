@@ -13,55 +13,98 @@
     }
 %>
 <html lang="es">
-<head>
-    <title>Registro de Videos - MiNetflix</title>
-    <!-- Bootstrap 5 CSS (CDN) -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" 
-          rel="stylesheet"
-          integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
-          crossorigin="anonymous">
-    <link rel="stylesheet" href="css/registroVid.css">
-</head>
-<body>
-    <div class="registro-container">
-        <h2>Registrar nuevo video</h2>
-        <form action="servletRegistroVid" method="post">
-            <label>Título:</label>
-            <input type="text" name="titulo" required />
+    <head>
+        <title>Registro de Videos - MiNetflix</title>
+        <!-- Bootstrap 5 CSS (CDN) -->
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" 
+              rel="stylesheet"
+              integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+              crossorigin="anonymous">
+        <link rel="stylesheet" href="css/registroVid.css">
+    </head>
+    <body>
+        <div class="registro-container">
+            <h2>Registrar nuevo video</h2>
+            <form action="servletRegistroVid" method="post" enctype="multipart/form-data">   
+                <label>Título:</label>
+                <input type="text" name="titulo" 
+                       value="<%= request.getAttribute("titulo") != null ? request.getAttribute("titulo") : "" %>"
+                       required />
 
-            <label>Autor:</label>
-            <input type="text" name="autor" required />
+                <label>Autor:</label>
+                <input type="text" name="autor" 
+                       value="<%= request.getAttribute("autor") != null ? request.getAttribute("autor") : "" %>"
+                       required />
 
-            <label>Fecha:</label>
-            <input type="date" name="fecha" required />
-            
-            <label>Ruta</label>
-            <input type="text" name="rutaVideo" placeholder="/path_to_video/video.mp4" required />
+                <label>Fecha:</label>
+                <input type="date" name="fecha"
+                       value="<%= request.getAttribute("fecha") != null ? request.getAttribute("fecha") : "" %>"
+                       required />
 
-            <label>Duración:</label>
-            <input type="text" name="duracion" placeholder="Ej. 2h 15min" required />
+                <label>Descripción:</label>
+                <textarea name="descripcion" 
+                          value="<%= request.getAttribute("descripcion") != null ? request.getAttribute("descripcion") : "" %>"
+                          placeholder="Añade una breve descripción del video"></textarea>
 
-            <label>Reproducciones:</label>
-            <input type="number" name="reproducciones" min="0" value="0" required />
+                <label>Tipo de Video:</label>
+                <select id="tipoVideo" name="tipoVideo" required>
+                    <option value="">Seleccione una opción</option>
+                    <option value="archivo">Subir archivo</option>
+                    <option value="youtube">Enlace de YouTube</option>
+                </select>
 
-            <label>Descripción:</label>
-            <textarea name="descripcion" placeholder="Añade una breve descripción del video"></textarea>
+                <div id="campoArchivo" style="display: none;">
+                    <label>Subir Video:</label>
+                    <!--<input type="file" name="archivoVideo" accept="video/*"/>-->
+                    <input type="file" id="archivoVideo" name="archivoVideo" accept="video/mp4" onchange="validarTamanio()"/>
+                    <div class="position-fixed top-0 end-0 p-3" style="z-index: 9999">
+                    <div id="errorFileToast" class="toast align-items-center text-bg-danger border-0"
+                         role="alert" aria-live="assertive" aria-atomic="true"
+                         data-bs-autohide="false">
+                            <div class="d-flex">
+                                <div class="toast-body">
+                                    <!-- Mensaje dinámico -->
+                                </div>
+                                <button type="button" class="btn-close btn-close-white me-2 m-auto"
+                                        data-bs-dismiss="toast" aria-label="Close"></button>
+                            </div>
+                        </div>
+                    </div>
+                    <script>
+                        function validarTamanio() {
+                            const input = document.getElementById("archivoVideo");
+                            const file = input.files[0];
+                            const maxSizeMB = 50; // Límite en MB
+                            const maxSizeBytes = maxSizeMB * 1024 * 1024;
+                            const toastEl = document.getElementById("errorFileToast");
+                            const toastBody = toastEl.querySelector(".toast-body");
+                            const toast = new bootstrap.Toast(toastEl);
 
-            <label>Formato:</label>
-            <select name="formato" required>
-                <option value="">Seleccione un formato</option>
-                <option value="MP4">MP4</option>
-                <option value="AVI">AVI</option>
-                <option value="MKV">MKV</option>
-                <option value="MOV">MOV</option>
-                <option value="WMV">WMV</option>
-                <option value="FLV">FLV</option>
-            </select>
+                            if (file && file.size > maxSizeBytes) {
+                                // Actualizar el mensaje del toast
+                                toastBody.textContent = "El archivo supera los 50MB permitidos.";
+                                toastEl.classList.remove("text-bg-success");
+                                toastEl.classList.add("text-bg-danger");
 
-            <input type="submit" value="Registrar Video" />
-        </form>
+                                // Mostrar el toast
+                                toast.show();
 
-        <% if (request.getAttribute("mensajeError") != null) { %>
+                                // Borrar el archivo para evitar el envío
+                                input.value = "";
+                            }
+                        }
+                    </script>
+                </div>
+
+                <div id="campoYoutube" style="display: none;">
+                    <label>Enlace de YouTube:</label>
+                    <input type="text" name="youtubeURL" placeholder="https://www.youtube.com/watch?v=..."/>
+                </div>
+
+                <input type="submit" value="Registrar Video" />
+            </form>
+
+            <% if (request.getAttribute("mensajeError") != null) { %>
             <!-- Contenedor para el toast (parte superior derecha) -->
             <div class="position-fixed top-0 end-0 p-3" style="z-index: 9999">
                 <!-- Toast en color de fondo rojo (text-bg-danger) -->
@@ -79,16 +122,16 @@
             </div>
             <!-- Script para inicializar el toast automáticamente -->
             <script>
-                document.addEventListener('DOMContentLoaded', function() {
+                document.addEventListener('DOMContentLoaded', function () {
                     var toastEl = document.getElementById('errorToast');
                     var toast = new bootstrap.Toast(toastEl);
                     toast.show();
                 });
             </script>
-        <% } %>
+            <% } %>
 
-        <% if (request.getAttribute("mensajeExito") != null) { %>
-             <!-- Contenedor para el toast (parte superior derecha) -->
+            <% if (request.getAttribute("mensajeExito") != null) { %>
+            <!-- Contenedor para el toast (parte superior derecha) -->
             <div class="position-fixed top-0 end-0 p-3" style="z-index: 9999;">
                 <!-- Toast con fondo verde (text-bg-success) -->
                 <div id="successToast" class="toast align-items-center text-bg-success border-0"
@@ -105,20 +148,41 @@
             </div>
             <!-- Script para inicializar el toast automáticamente -->
             <script>
-                document.addEventListener('DOMContentLoaded', function() {
+                document.addEventListener('DOMContentLoaded', function () {
                     var toastEl = document.getElementById('successToast');
                     var toast = new bootstrap.Toast(toastEl);
                     toast.show();
                 });
             </script>
-        <% } %>
+            <% } %>
 
-        <a href="home.jsp" class="back-link">Volver al menú principal</a>
-    </div>
-        
-    <!-- Bootstrap 5 JS (CDN) -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
-            integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
-            crossorigin="anonymous"></script>
-</body>
+            <a href="home.jsp" class="back-link">Volver al menú principal</a>
+        </div>
+
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                var tipoVideoSelect = document.getElementById("tipoVideo");
+                var campoArchivo = document.getElementById("campoArchivo");
+                var campoYoutube = document.getElementById("campoYoutube");
+
+                tipoVideoSelect.addEventListener("change", function () {
+                    if (this.value === "archivo") {
+                        campoArchivo.style.display = "block";
+                        campoYoutube.style.display = "none";
+                    } else if (this.value === "youtube") {
+                        campoArchivo.style.display = "none";
+                        campoYoutube.style.display = "block";
+                    } else {
+                        campoArchivo.style.display = "none";
+                        campoYoutube.style.display = "none";
+                    }
+                });
+            });
+        </script>
+
+        <!-- Bootstrap 5 JS (CDN) -->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+                integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+        crossorigin="anonymous"></script>
+    </body>
 </html>

@@ -28,16 +28,24 @@
             <input type="hidden" name="accion" value="registrar" />
 
             <label>Nombre:</label>
-            <input type="text" name="nombre" required />
+            <input type="text" name="nombre"
+                   value="<%= request.getAttribute("nombre") != null ? request.getAttribute("nombre") : "" %>"
+                   required />
 
             <label>Apellidos:</label>
-            <input type="text" name="apellidos" required />
+            <input type="text" name="apellidos" 
+                   value="<%= request.getAttribute("apellidos") != null ? request.getAttribute("apellidos") : "" %>"
+                   required />
 
             <label>Correo electrónico:</label>
-            <input type="email" name="email" required />
+            <input type="email" name="email" 
+                   value="<%= request.getAttribute("email") != null ? request.getAttribute("email") : "" %>"
+                   required />
 
             <label>Nombre de usuario:</label>
-            <input type="text" name="username" required />
+            <input type="text" name="username" 
+                   value="<%= request.getAttribute("username") != null ? request.getAttribute("username") : "" %>"
+                   required />
 
             <label>Contraseña:</label>
             <input type="password" name="password" required />

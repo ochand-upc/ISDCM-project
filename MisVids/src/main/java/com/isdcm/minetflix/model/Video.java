@@ -1,35 +1,35 @@
 package com.isdcm.minetflix.model;
 
 public class Video {
-
     private int id;
     private String titulo;
     private String autor;
-    private String fecha;         // Usado como VARCHAR(10) en la BD
-    private String duracion;      // También VARCHAR(10) en la BD
+    private String fecha;
+    private double duracion;
     private int reproducciones;
     private String descripcion;
-    private String formato;
-    private String rutavideo;
+    private String mimeType;
+    private String rutaVideo;
+    private String tipoFuente;
+    private Long tamano;// Puede ser NULL para YouTube
 
-    // Constructor vacío (requerido para instanciar sin parámetros)
-    public Video() {
-    }
-
-    // Constructor con todos los campos (excepto 'id' si lo autogenera la BD)
-    public Video(String titulo, String autor, String fecha, String duracion,
-                 int reproducciones, String descripcion, String formato, String rutavideo) {
+    public Video(String titulo, String autor, String fecha, double duracion, int reproducciones, 
+                 String descripcion, String mimeType, String rutaVideo, String tipoFuente, Long tamano) {
         this.titulo = titulo;
         this.autor = autor;
         this.fecha = fecha;
         this.duracion = duracion;
         this.reproducciones = reproducciones;
         this.descripcion = descripcion;
-        this.formato = formato;
-        this.rutavideo = rutavideo;
+        this.mimeType = mimeType;
+        this.rutaVideo = rutaVideo;
+        this.tipoFuente = tipoFuente;
+        this.tamano = tamano;
     }
 
-    // Getters y Setters para cada atributo
+    public Video() {
+        // Constructor vacío por defecto
+    }
 
     public int getId() {
         return id;
@@ -63,11 +63,11 @@ public class Video {
         this.fecha = fecha;
     }
 
-    public String getDuracion() {
+    public double getDuracion() {
         return duracion;
     }
 
-    public void setDuracion(String duracion) {
+    public void setDuracion(double duracion) {
         this.duracion = duracion;
     }
 
@@ -87,19 +87,52 @@ public class Video {
         this.descripcion = descripcion;
     }
 
-    public String getFormato() {
-        return formato;
+    public String getMimeType() {
+        return mimeType;
     }
 
-    public void setFormato(String formato) {
-        this.formato = formato;
+    public void setMimeType(String mimeType) {
+        this.mimeType = mimeType;
     }
 
-    public String getRutavideo() {
-        return rutavideo;
+    public String getRutaVideo() {
+        return rutaVideo;
     }
 
-    public void setRutavideo(String rutavideo) {
-        this.rutavideo = rutavideo;
+    public void setRutaVideo(String rutaVideo) {
+        this.rutaVideo = rutaVideo;
+    }
+
+    public String getTipoFuente() {
+        return tipoFuente;
+    }
+
+    public void setTipoFuente(String tipoFuente) {
+        this.tipoFuente = tipoFuente;
+    }
+
+    public Long getTamano() {
+        return tamano;
+    }
+
+    public void setTamano(Long tamano) {
+        this.tamano = tamano;
+    }
+
+    @Override
+    public String toString() {
+        return "Video{" +
+                "id=" + id +
+                ", titulo='" + titulo + '\'' +
+                ", autor='" + autor + '\'' +
+                ", fecha=" + fecha +
+                ", duracion='" + duracion + '\'' +
+                ", reproducciones=" + reproducciones +
+                ", descripcion='" + descripcion + '\'' +
+                ", mimeType='" + mimeType + '\'' +
+                ", rutaVideo='" + rutaVideo + '\'' +
+                ", tipoFuente='" + tipoFuente + '\'' +
+                ", tamano=" + tamano +
+                '}';
     }
 }

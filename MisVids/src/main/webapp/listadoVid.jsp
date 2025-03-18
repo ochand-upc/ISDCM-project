@@ -35,6 +35,7 @@
                     <th>Reproducciones</th>
                     <th>Descripción</th>
                     <th>Formato</th>
+                    <th>Tamaño</th>
                     <th>Enlace</th>
                 </tr>
             </thead>
@@ -53,10 +54,9 @@
                     <td><%= vid.getDuracion() %></td>
                     <td><%= vid.getReproducciones() %></td>
                     <td><%= vid.getDescripcion() %></td>
-                    <td><%= vid.getFormato() %></td>
-                    <td><a href="<%= vid.getRutavideo() %>" target="_blank" class="link">Ver video</a></td>
-                </tr>
-            <%
+                    <td><%= vid.getMimeType() %></td>
+                    <td><%= vid.getTamano() %></td>
+                    <td><a href="servletVerVideo?id=<%= vid.getId() %>" class="link">Ver video</a></td>            <%
                     }
                 } else {
             %>

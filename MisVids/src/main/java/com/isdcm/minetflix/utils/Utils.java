@@ -20,7 +20,7 @@ import net.bramp.ffmpeg.probe.FFmpegProbeResult;
 
 public class Utils {
     
-    private static final String VIDEO_STORAGE_PATH = "/opt/uploads/videos/";
+    private static final String VIDEO_STORAGE_PATH = "videos/";
     
     public static String hashString(String value) {
         try {

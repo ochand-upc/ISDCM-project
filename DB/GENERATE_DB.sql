@@ -48,6 +48,6 @@ VALUES
 -- Insertar datos de videos
 INSERT INTO "PR2".VIDEOS (TITULO, AUTOR, FECHA, DURACION, REPRODUCCIONES, DESCRIPCION, MIME_TYPE, RUTAVIDEO, TIPO_FUENTE, TAMANO)
 VALUES 
-    ('Capitán América: un nuevo mundo', 'Marvel', '2023-01-01 10:00:00', 157.709, 3500, 'Captain America: Brave New World o Capitán América: Un Nuevo Mundo en Hispanoamérica es una película de superhéroes estadounidense de 2025, con el personaje de Marvel Comics, Sam Wilson / Capitán América.', 'video/mp4', '/opt/uploads/videos/31f73d73d02994a0f4b7930314632d97e2cc56dca09d32255deef42431982b26', 'LOCAL', 11200000),
+    ('Capitán América: un nuevo mundo', 'Marvel', '2023-01-01 10:00:00', 157.709, 3500, 'Captain America: Brave New World o Capitán América: Un Nuevo Mundo en Hispanoamérica es una película de superhéroes estadounidense de 2025, con el personaje de Marvel Comics, Sam Wilson / Capitán América.', 'video/mp4', 'videos/inicial_31f73d73d02994a0f4b7930314632d97e2cc56dca09d32255deef42431982b26', 'LOCAL', 11200000),
     ('Historia de la IA', 'Documentary Channel', '2024-01-01 11:00:00', 0, 1000, 'Documental sobre la inteligencia artificial', 'youtube', 'https://www.youtube.com/embed/WCM0h9TX7cY?si=vrUsnpMBpi2hd3D7', 'YOUTUBE', 0),
     ('El Universo', 'Space Channel', '2025-01-01 13:00:00', 0, 5000, 'Exploración del cosmos', 'youtube', 'https://www.youtube.com/embed/cf4GUMjJn58?si=VPFp-Ovgeh-MkEIq', 'YOUTUBE', 0);

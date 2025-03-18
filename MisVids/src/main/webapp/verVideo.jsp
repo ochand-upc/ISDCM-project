@@ -6,6 +6,7 @@
         return;
     }
     String rutaVideo = (String) request.getAttribute("rutaVideo");
+    String fileName = (String) request.getAttribute("fileName");
 %>
 <html lang="es">
 <head>
@@ -22,14 +23,14 @@
         <div class="video-container">
             <% if ("YOUTUBE".equals(video.getTipoFuente())) { %>
                 <div class="ratio ratio-16x9">
-                    <div id="player"></div>
+                    <div id="playerYT"></div>
                 </div>
                 <script>
                     var player;
                     var reproduccionRegistrada = false;  
                     
                     function onYouTubeIframeAPIReady() {
-                        player = new YT.Player("player", {
+                        player = new YT.Player("playerYT", {
                             height: "450",
                             width: "800",
                             videoId: '<%= Utils.extraerYouTubeId(rutaVideo) %>',
@@ -51,11 +52,33 @@
                 <script src="https://www.youtube.com/iframe_api"></script>
             <% } else { %>
                 <div class="ratio ratio-16x9">
-                    <video controls>
+                   <video id="playerLocal" controls>
                         <source src="<%= rutaVideo %>" type="<%= video.getMimeType() %>">
                         Tu navegador no soporta videos.
                     </video>
+                    <!--<video controls>
+                        <source src="<%= rutaVideo %>" type="<%= video.getMimeType() %>">
+                        Tu navegador no soporta videos.
+                    </video>-->
                 </div>
+                <script>
+                    document.addEventListener("DOMContentLoaded", function () {
+                        var videoElement = document.getElementById("playerLocal");
+                        var reproduccionRegistrada = false;
+
+                        if (videoElement) {
+                            videoElement.addEventListener("play", function () {
+                                if (!reproduccionRegistrada) {
+                                    reproduccionRegistrada = true;
+                                    fetch("<%= request.getContextPath() %>/servletStreamVideo?id=<%= video.getId()%>&file=<%=fileName%>&reproducido=true", {
+                                        method: "POST"
+                                    });
+                                }
+                            });
+                        }
+                    });
+                 </script>
+                        
             <% } %>
         </div>
 

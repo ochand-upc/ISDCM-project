@@ -48,9 +48,6 @@ public class servletStreamVideo extends HttpServlet {
             return;
         }
 
-        // Usar VideoPlaybackManager para registrar la reproducción
-        VideoPlaybackManager.getInstance().registrarReproduccion(session, videoId);
-
         // Construir la ruta del archivo de video
         File videoFile = new File(VIDEO_STORAGE_PATH, fileName);
         if (!videoFile.exists() || !videoFile.isFile()) {
@@ -89,9 +86,35 @@ public class servletStreamVideo extends HttpServlet {
 
                 if (!contadorIncrementado && bytesReproducidos >= minBytesToCount) {
                     contadorIncrementado = true;
-                    VideoPlaybackManager.getInstance().registrarReproduccion(session, videoId);
+                    //VideoPlaybackManager.registrarReproduccion(session, videoId);
                 }
             }
+        }
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        String videoIdParam = request.getParameter("id");
+        String reproducido = request.getParameter("reproducido");
+        
+        // Verificar si el usuario está autenticado
+        HttpSession session = request.getSession(false);
+        if (session == null || session.getAttribute("usuarioLogueado") == null) {
+            response.sendRedirect("login.jsp");
+            return;
+        }
+
+        if (videoIdParam != null && "true".equals(reproducido)) {
+            int videoId;
+            try {
+                videoId = Integer.parseInt(videoIdParam);
+            } catch (NumberFormatException e) {
+                response.sendError(HttpServletResponse.SC_BAD_REQUEST, "ID de video inválido.");
+                return;
+            }
+
+            // Registrar reproducción solo si aún no se ha contado en la sesión
+            VideoPlaybackManager.registrarReproduccion(session, videoId);
         }
     }
 }

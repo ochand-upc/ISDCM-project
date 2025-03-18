@@ -45,17 +45,11 @@ public class servletVerVideo extends HttpServlet {
             // Determinar la URL del video
             String rutaVideo;
             if ("LOCAL".equals(video.getTipoFuente())) {
-                // ✅ Enviar solo el nombre del archivo al `servletStreamVideo`
                 String fileName = new File(VIDEO_STORAGE_PATH + video.getRutaVideo()).getName();
                 rutaVideo = "/MisVids/servletStreamVideo?id="+ video.getId() + "&file=" + fileName;
+                request.setAttribute("fileName", fileName);
             } else { // Significa que es de youtube
                 rutaVideo = video.getRutaVideo();
-                String accion = request.getParameter("accion");
-                
-                if (accion != null && accion.equals("reproducido")) {
-                    VideoPlaybackManager.registrarReproduccion(sesion, id);
-                    response.setStatus(HttpServletResponse.SC_OK);
-                }
             }
 
             request.setAttribute("video", video);

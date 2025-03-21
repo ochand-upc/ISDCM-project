@@ -23,9 +23,9 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>net.bramp.ffmpeg</groupId>
-            <artifactId>ffmpeg</artifactId>
-            <version>0.6.2</version>
+            <groupId>org.jcodec</groupId>
+            <artifactId>jcodec</artifactId>
+            <version>0.2.5</version> <!-- o la versión más reciente -->
         </dependency>
     </dependencies>
     

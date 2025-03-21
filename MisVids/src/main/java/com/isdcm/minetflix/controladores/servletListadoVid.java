@@ -22,7 +22,7 @@ public class servletListadoVid extends HttpServlet {
            return;
        }
        
-       // 1) Recuperar el mensaje de éxito si existe
+       // Recuperar el mensaje de éxito si existe
        String mensajeExito = (String) sesion.getAttribute("mensajeExito");
        if (mensajeExito != null) {
            // Pasarlo al request
@@ -32,7 +32,7 @@ public class servletListadoVid extends HttpServlet {
        }
 
        try {
-           // Asegúrate de que VideoDAO.listarVideos() obtenga los datos correctamente
+           // Asegurse que VideoDAO.listarVideos() obtenga los datos correctamente
            List<Video> lista = VideoDAO.listarVideos();
            request.setAttribute("listaVideos", lista);  // La lista se pasa como atributo
            request.getRequestDispatcher("listadoVid.jsp").forward(request, response);

@@ -5,22 +5,44 @@
 package com.isdcm.minetflix.utils;
 
 import jakarta.servlet.http.Part;
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import net.bramp.ffmpeg.FFprobe;
-import net.bramp.ffmpeg.probe.FFmpegProbeResult;
+import org.jcodec.containers.mp4.MP4Util;
+import org.jcodec.containers.mp4.boxes.MovieBox;
+import org.jcodec.containers.mp4.boxes.MovieHeaderBox;
+import org.jcodec.containers.mp4.boxes.NodeBox;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.util.Properties;
 
 public class Utils {
     
-    private static final String VIDEO_STORAGE_PATH = "videos/";
+    private static final String PROPERTIES_FILE = System.getProperty("config.path");
+    private static String videoStoragePath;
+    
+    static {
+        // Bloque estático: se ejecuta una sola vez al cargar la clase
+        try (InputStream input = new FileInputStream(PROPERTIES_FILE)) {
+            Properties props = new Properties();
+            props.load(input);
+
+            // Lee la clave "videos.path" del archivo
+            videoStoragePath = props.getProperty("videos.path");
+            if (videoStoragePath == null || videoStoragePath.isEmpty()) {
+                // Si no existe la clave, usar un valor por defecto o lanzar excepción
+                videoStoragePath = "videos/";  // o lanza un error
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            // En caso de error, pon un valor por defecto o maneja la excepción
+            videoStoragePath = "videos/";
+        }
+    }
     
     public static String hashString(String value) {
         try {
@@ -42,22 +64,28 @@ public class Utils {
     }
     
     public static double calcularDuracion(File file) {
-       if (file == null || !file.exists()) {
+        if (file == null || !file.exists()) {
             System.out.println("El archivo no existe o es nulo.");
             return 0;
         }
-
         try {
-            // Crea un objeto FFprobe sin especificar rutas locales
-            FFprobe ffprobe = new FFprobe();
-            FFmpegProbeResult probeResult = ffprobe.probe(file.getAbsolutePath());
-            
-            // Retorna la duración en segundos
-            return probeResult.getFormat().duration;
+            // Lee el contenedor MP4 desde el archivo
+            MovieBox movie = MP4Util.parseMovie(file);
+
+            // Busca la cabecera de la película "mvhd" dentro del MovieBox
+            MovieHeaderBox mvhd = NodeBox.findFirst(movie, MovieHeaderBox.class, "mvhd");
+            if (mvhd == null) {
+                // Si no encuentra la cabecera, no podemos determinar la duración
+                return 0;
+            }
+
+            double timescale = mvhd.getTimescale();  // "ticks" por segundo
+            double duration = mvhd.getDuration();    // duración en "ticks"
+            return duration / timescale;            // duración en segundos
         } catch (IOException e) {
             e.printStackTrace();
+            return 0;
         }
-        return 0;
     }
         
     public static boolean esLinkValidoYouTube(String url) {
@@ -76,6 +104,6 @@ public class Utils {
     }
     
     public static String getVideoStoragePath() {
-        return VIDEO_STORAGE_PATH;
+        return videoStoragePath;
     }
 }

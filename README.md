@@ -52,6 +52,25 @@ Se implementa una **clase de conexión centralizada** (`DatabaseConnection`) y u
 - **NetBeans 17** 🏗️
 - **Derby Database** 🗄️
 
+## ⚙️ Configuración de Variables de Entorno
+Para el funcionamiento correcto de la aplicación es necesario establecer una variable de entorno en la que se especifica la ruta absoluta del archivo de conexión a la base de datos. 
+1. Ubica el archivo de configuración domain.xml, localizado normalmente en glassfish/domains/domain1/config/
+2. Coloca el archivo DB.properties en la ruta deseada. Debe contener lo siguiente:
+> db.url=jdbc:derby://localhost:1527/BASEDEDATOS;create=true
+> 
+> db.user=usuario_bd
+> 
+> db.pass=password_bd
+>
+> videos.path=/ruta/absoluta/en/tu/SO/a/la/ubicacion/
+3. Agrega la siguiente línea al archivo:
+> <java-config ...>
+> 
+>     <jvm-options>-Dconfig.path=/ruta/absoluta/en/tu/SO/a/DB.properties</jvm-options>
+> 
+> <\/java-config> 
+4. Reinicia el servidor GlassFish
+
 ---
 
 ## 👥 Autores

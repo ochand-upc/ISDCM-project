@@ -67,13 +67,6 @@ public class servletStreamVideo extends HttpServlet {
         response.setContentLengthLong(videoFile.length());
         response.setHeader("Accept-Ranges", "bytes");
 
-        // Streaming de video
-        long totalBytes = videoFile.length();
-        long bytesReproducidos = 0;
-        long minBytesToCount = (long) (totalBytes * MIN_PERCENTAGE_PLAYED); // 10% del total
-
-        boolean contadorIncrementado = false;
-
         try (FileInputStream fis = new FileInputStream(videoFile);
              OutputStream os = response.getOutputStream()) {
 
@@ -82,12 +75,6 @@ public class servletStreamVideo extends HttpServlet {
 
             while ((bytesRead = fis.read(buffer)) != -1) {
                 os.write(buffer, 0, bytesRead);
-                bytesReproducidos += bytesRead;
-
-                if (!contadorIncrementado && bytesReproducidos >= minBytesToCount) {
-                    contadorIncrementado = true;
-                    //VideoPlaybackManager.registrarReproduccion(session, videoId);
-                }
             }
         }
     }
@@ -104,7 +91,7 @@ public class servletStreamVideo extends HttpServlet {
             return;
         }
 
-        if (videoIdParam != null && "true".equals(reproducido)) {
+        if (videoIdParam != null && reproducido.equals("true")) {
             int videoId;
             try {
                 videoId = Integer.parseInt(videoIdParam);

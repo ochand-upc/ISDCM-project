@@ -3,7 +3,6 @@ package com.isdcm.minetflix.controladores;
 import com.isdcm.minetflix.dao.VideoDAO;
 import com.isdcm.minetflix.model.Video;
 import com.isdcm.minetflix.utils.Utils;
-import com.isdcm.minetflix.utils.VideoPlaybackManager;
 import java.io.IOException;
 import java.sql.SQLException;
 import jakarta.servlet.*;
@@ -62,24 +61,4 @@ public class servletVerVideo extends HttpServlet {
         }
     }
 
-    @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-
-        HttpSession sesion = request.getSession(false);
-        if (sesion == null || sesion.getAttribute("usuarioLogueado") == null) {
-            response.sendRedirect("login.jsp");
-            return;
-        }
-        
-        String videoId = request.getParameter("id");
-        String accion = request.getParameter("accion");
-
-        if (videoId == null || videoId.isEmpty() || accion == null || !accion.equals("reproducido")) {
-            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Solicitud inválida.");
-            return;
-        }
-        
-        int id = Integer.parseInt(videoId);
-        VideoPlaybackManager.registrarReproduccion(sesion, id);        
-    }
  }

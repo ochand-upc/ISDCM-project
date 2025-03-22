@@ -11,6 +11,7 @@ Se implementa el patrón **Modelo-Vista-Controlador (MVC)**, con **DAO** para la
 - 🔐 **Inicio de sesión** con verificación de credenciales.
 - 📂 **Registro de videos** asegurando consistencia de datos.
 - 📋 **Listado de videos** disponibles en la plataforma.
+- ▶️  **Reprudcción de videos** locales o de YouTube.
 - 🛡️ **Filtros de acceso** para proteger las páginas de usuarios autenticados.
 - 🛠️ **Gestión de base de datos** mediante una conexión centralizada y un ejecutor de consultas.
 
@@ -18,15 +19,28 @@ Se implementa el patrón **Modelo-Vista-Controlador (MVC)**, con **DAO** para la
 
 ## ✅ Validaciones implementadas
 
-### 🧑‍💻 Registro de usuario
-- Todos los campos son **requeridos**.
-- Las contraseñas deben **coincidir**.
-- El **nombre de usuario** y **correo electrónico** no deben existir previamente.
+## 🔐 Login / Logout
+- 🧩 Inputs con límite de caracteres.
+- 🔑 Validación de credenciales para iniciar sesión.
+- 🧠 Mantenimiento de sesión con HttpSession al hacer login/logout.
 
-### 🎥 Registro de videos
-- Todos los campos son **requeridos**.
-- La **fecha del video** debe ser **anterior** a la fecha actual.
-- No puede existir un video con el **mismo título y autor**.
+## 👤 Registro de usuario
+- 📌 Todos los campos son requeridos.
+- 🔐 Las contraseñas deben coincidir.
+- 📧 El nombre de usuario y correo electrónico deben ser únicos.
+- 🧩 Inputs con límite de caracteres.
+
+## 🎥 Registro de videos
+- 📌 Todos los campos son requeridos.
+- 📆 La fecha del video debe ser anterior a la fecha actual.
+- ⚠️ No puede existir un video con el mismo título y autor.
+- 🧩 Inputs con límite de caracteres.
+- 📁 Tamaño del archivo no debe exceder 50MB.
+- 🔗 Si es un enlace de YouTube, debe estar en formato embed: https://www.youtube.com/embed/....
+
+## 🌐 Validaciones generales en páginas
+- 🔐 Control de acceso: páginas protegidas mediante HttpSession.
+- ❌ Redirección a una página de error personalizada si se accede a una ruta inválida.
 
 ---
 
@@ -35,6 +49,7 @@ Se implementa el patrón **Modelo-Vista-Controlador (MVC)**, con **DAO** para la
 - `/login` ➝ Inicio de sesión
 - `/home` ➝ Página de inicio
 - `/listadoVid` ➝ Listado de videos
+- `/verVideo` ➝ Ver video
 - `/notFoundPage` ➝ Página de error 404
 
 ---

@@ -29,7 +29,7 @@ public class DatabaseExecutor {
                 ps.setObject(i + 1, parametros[i]);
             }
 
-            // 🔍 Imprimir la consulta generada
+            // Imprimir la consulta generada
             System.out.println("SQL Ejecutado: " + queryDebug.toString());
             // Ejecutar la consulta de actualización
             int filasAfectadas = ps.executeUpdate();

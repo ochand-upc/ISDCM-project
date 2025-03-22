@@ -182,25 +182,5 @@ public class servletRegistroVid extends HttpServlet {
 
         sesion.setAttribute("mensajeExito", "Vídeo registrado correctamente.");
         response.sendRedirect("servletListadoVid");
-    }
-    
-    private Part getFilePart(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException{
-        
-        Part archivoPart = request.getPart("archivoVideo");
-
-        if (archivoPart == null || archivoPart.getSize() == 0) {
-            request.setAttribute("mensajeError", "Debe seleccionar un archivo.");
-            request.getRequestDispatcher("registroVid.jsp").forward(request, response);
-        }
-
-        // Validar si el archivo supera el tamaño permitido
-        if (archivoPart.getSize() > MAX_VIDEO_SIZE) {
-            request.setAttribute("mensajeError", "El archivo es demasiado grande. Máximo permitido: 50MB.");
-            request.getRequestDispatcher("registroVid.jsp").forward(request, response);
-        }
-
-        return archivoPart;
-        
-    }
-    
+    }    
 }

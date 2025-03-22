@@ -9,9 +9,6 @@ import com.isdcm.minetflix.utils.Utils;
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.nio.charset.StandardCharsets;
 
 public class UsuarioDAO {
 

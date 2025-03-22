@@ -29,11 +29,13 @@
                 <label>Título:</label>
                 <input type="text" name="titulo" 
                        value="<%= request.getAttribute("titulo") != null ? request.getAttribute("titulo") : "" %>"
+                       maxlength="90"
                        required />
 
                 <label>Autor:</label>
                 <input type="text" name="autor" 
                        value="<%= request.getAttribute("autor") != null ? request.getAttribute("autor") : "" %>"
+                       maxlength="90"
                        required />
 
                 <label>Fecha:</label>
@@ -44,6 +46,7 @@
                 <label>Descripción:</label>
                 <textarea name="descripcion" 
                           value="<%= request.getAttribute("descripcion") != null ? request.getAttribute("descripcion") : "" %>"
+                          maxlength="250"
                           placeholder="Añade una breve descripción del video"></textarea>
 
                 <label>Tipo de Video:</label>
@@ -98,7 +101,7 @@
 
                 <div id="campoYoutube" style="display: none;">
                     <label>Enlace de YouTube:</label>
-                    <input type="text" name="youtubeURL" placeholder="https://www.youtube.com/watch?v=..."/>
+                    <input type="text" maxlength="250" name="youtubeURL" placeholder="https://www.youtube.com/embed/.."/>
                 </div>
 
                 <input type="submit" value="Registrar Video" />

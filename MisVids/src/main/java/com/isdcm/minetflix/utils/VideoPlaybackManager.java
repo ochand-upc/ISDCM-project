@@ -24,11 +24,6 @@ public class VideoPlaybackManager {
         return instance;
     }
 
-    /**
-     * Verifica y aumenta la reproducción del video si aún no se ha contado en la sesión.
-     * @param session Sesión del usuario.
-     * @param videoId ID del video.
-     */
     public static void registrarReproduccion(HttpSession session, int videoId) {
         if (session == null) {
             return;

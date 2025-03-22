@@ -1,3 +1,9 @@
+<%-- 
+    Document   : registroVid
+    Created on : 28 feb 2025, 16:50:35
+    Author     : alumne
+--%>
+
 <%@ page session="true" import="com.isdcm.minetflix.utils.Utils"%>
 <%
     com.isdcm.minetflix.model.Video video = (com.isdcm.minetflix.model.Video) request.getAttribute("video");
@@ -45,7 +51,7 @@
                     function onPlayerStateChange(event) {
                         if (event.data === YT.PlayerState.PLAYING && !reproduccionRegistrada) {
                             reproduccionRegistrada = true;
-                            fetch("servletVerVideo?id=<%= video.getId() %>&accion=reproducido", {
+                            fetch("servletStreamVideo?id=<%= video.getId() %>&reproducido=true", {
                                 method: "POST"
                             });
                         }

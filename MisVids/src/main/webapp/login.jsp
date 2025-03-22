@@ -28,10 +28,10 @@
             <input type="hidden" name="accion" value="login" />
                 
             <label>Usuario:</label>
-            <input type="text" name="username" required />
+            <input type="text" name="username" maxlength="25" required />
                 
             <label>Contraseña:</label>
-            <input type="password" name="password" required />
+            <input type="password" name="password" maxlength="50" required />
                 
             <input type="submit" value="Iniciar sesión" />
         </form>

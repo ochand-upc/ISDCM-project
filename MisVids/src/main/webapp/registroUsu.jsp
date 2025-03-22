@@ -28,30 +28,30 @@
             <input type="hidden" name="accion" value="registrar" />
 
             <label>Nombre:</label>
-            <input type="text" name="nombre"
+            <input type="text" name="nombre" maxlength="90"
                    value="<%= request.getAttribute("nombre") != null ? request.getAttribute("nombre") : "" %>"
                    required />
 
             <label>Apellidos:</label>
-            <input type="text" name="apellidos" 
+            <input type="text" name="apellidos" maxlength="90"
                    value="<%= request.getAttribute("apellidos") != null ? request.getAttribute("apellidos") : "" %>"
                    required />
 
             <label>Correo electrónico:</label>
-            <input type="email" name="email" 
+            <input type="email" name="email" maxlength="90"
                    value="<%= request.getAttribute("email") != null ? request.getAttribute("email") : "" %>"
                    required />
 
             <label>Nombre de usuario:</label>
-            <input type="text" name="username" 
+            <input type="text" name="username" maxlength="25"
                    value="<%= request.getAttribute("username") != null ? request.getAttribute("username") : "" %>"
                    required />
 
             <label>Contraseña:</label>
-            <input type="password" name="password" required />
+            <input type="password" name="password" maxlength="50" required />
 
             <label>Repetir contraseña:</label>
-            <input type="password" name="password2" required />
+            <input type="password" name="password2" maxlength="50" required />
 
             <input type="submit" value="Registrar usuario" />
         </form>

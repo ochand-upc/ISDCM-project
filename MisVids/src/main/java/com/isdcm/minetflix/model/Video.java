@@ -27,9 +27,7 @@ public class Video {
         this.tamano = tamano;
     }
 
-    public Video() {
-        // Constructor vacío por defecto
-    }
+    public Video() { }
 
     public int getId() {
         return id;

@@ -2,7 +2,7 @@ package com.isdcm.minetflix.model;
 
 public class Usuario {
 
-    private int id;             // ID autogenerado en la base de datos
+    private int id;
     private String nombre;
     private String apellidos;
     private String email;
@@ -23,14 +23,10 @@ public class Usuario {
         this.password = password;
     }
 
-    // Getters y Setters
-
     public int getId() {
         return id;
     }
 
-    // Si deseas asignar manualmente el id, puedes usar este setter
-    // o dejar que la BD lo genere y recuperarlo después
     public void setId(int id) {
         this.id = id;
     }

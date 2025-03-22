@@ -89,7 +89,7 @@ public class Utils {
     }
         
     public static boolean esLinkValidoYouTube(String url) {
-        return url.matches("^(https?://)?(www\\.)?(youtube|youtu|youtube-nocookie)\\.com/.+$");
+        return url != null && url.matches("^(https?://)?(www\\.)?youtube\\.com/embed/[a-zA-Z0-9_-]{11}([?].*)?$");
     }
 
     public static Long obtenerDuracionDeYouTube(String url) {

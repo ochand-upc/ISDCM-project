@@ -4,6 +4,7 @@
  */
 package com.isdcm.minetflix.dao;
 
+import com.isdcm.minetflix.dao.DatabaseExecutor.ResultSetWrapper;
 import com.isdcm.minetflix.model.Usuario;
 import com.isdcm.minetflix.utils.Utils;
 import java.io.IOException;
@@ -23,7 +24,8 @@ public class UsuarioDAO {
     // Método para verificar login
     public static boolean validarLogin(String username, String password) throws SQLException, IOException {
         String sql = "SELECT * FROM USUARIOS WHERE USERNAME = ? AND PASSWORD = ?";
-        try (ResultSet rs = DatabaseExecutor.ejecutarQuery(sql, username, password)) {
+        try (ResultSetWrapper wrap = DatabaseExecutor.ejecutarQuery(sql, username, password);
+                ResultSet rs = wrap.getResultSet()) {
             return rs.next(); // true si encuentra el registro
         }
     }
@@ -31,7 +33,8 @@ public class UsuarioDAO {
     // Verifica si el username ya existe
     public static boolean existeUsername(String username) throws SQLException, IOException {
         String sql = "SELECT USERNAME FROM USUARIOS WHERE USERNAME = ?";
-        try (ResultSet rs = DatabaseExecutor.ejecutarQuery(sql, username)) {
+        try (ResultSetWrapper wrap = DatabaseExecutor.ejecutarQuery(sql, username);
+                ResultSet rs = wrap.getResultSet()) {
             return rs.next();
         }
     }
@@ -39,7 +42,8 @@ public class UsuarioDAO {
     // Verifica si el email ya existe
     public static boolean existeEmail(String email) throws SQLException, IOException {
         String sql = "SELECT USERNAME FROM USUARIOS WHERE EMAIL = ?";
-        try (ResultSet rs = DatabaseExecutor.ejecutarQuery(sql, email)) {
+        try (ResultSetWrapper wrap = DatabaseExecutor.ejecutarQuery(sql, email);
+                ResultSet rs = wrap.getResultSet()) {
             return rs.next();
         }
     }

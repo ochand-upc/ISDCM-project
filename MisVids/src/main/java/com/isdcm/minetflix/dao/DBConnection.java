@@ -34,11 +34,4 @@ public class DBConnection {
         }
         return conn;
     }
-
-    // Método para cerrar la conexión
-    public static void cerrarConexion() throws SQLException {
-        if (conn != null && !conn.isClosed()) {
-            conn.close();
-        }
-    }
 }

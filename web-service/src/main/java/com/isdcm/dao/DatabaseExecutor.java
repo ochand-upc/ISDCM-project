@@ -38,7 +38,7 @@ public class DatabaseExecutor {
     }
 
     // Método genérico para ejecutar una consulta SELECT
-    public static ResultSet ejecutarQuery(String sql, Object... parametros) throws SQLException, IOException {
+    public static ResultSetWrapper ejecutarQuery(String sql, Object... parametros) throws SQLException, IOException {
         Connection conn = DBConnection.obtenerConexion();
         PreparedStatement ps = conn.prepareStatement(sql);
         
@@ -48,6 +48,33 @@ public class DatabaseExecutor {
         }
         
         // Ejecutar la consulta y devolver el resultado
-        return ps.executeQuery();
+        ResultSet rs = ps.executeQuery();
+        return new ResultSetWrapper(rs, ps, conn);
+    }
+    
+     /**
+     * Wrapper que cierra el ResultSet, su PreparedStatement y la Connection al cerrar().
+     */
+    public static class ResultSetWrapper implements AutoCloseable {
+        private final ResultSet rs;
+        private final PreparedStatement ps;
+        private final Connection conn;
+        
+        public ResultSetWrapper(ResultSet rs, PreparedStatement ps, Connection conn) {
+            this.rs   = rs;
+            this.ps   = ps;
+            this.conn = conn;
+        }
+        
+        public ResultSet getResultSet() {
+            return rs;
+        }
+        
+        @Override
+        public void close() throws SQLException {
+            rs.close();
+            ps.close();
+            conn.close();
+        }
     }
 }

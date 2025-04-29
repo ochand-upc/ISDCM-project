@@ -143,9 +143,9 @@ public class servletRegistroVid extends HttpServlet {
             File videoFile = rutaDestino.toFile();
             duracionSegundos = Utils.calcularDuracion(videoFile);
             mimeType = Utils.obtenerMimeDesdeRequest(archivoPart);
-            rutaVideo = rutaDestino.toString();
+            rutaVideo = rutaDestino.getFileName().toString();
             tamano = archivoPart.getSize();
-            
+           
         } else if ("youtube".equals(tipoVideo)) {
             String urlYouTube = request.getParameter("youtubeURL").trim();
             if (!Utils.esLinkValidoYouTube(urlYouTube)) {

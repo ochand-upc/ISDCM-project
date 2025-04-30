@@ -61,13 +61,14 @@
       </table>
     </div>
     
-
-    
     <!-- Paginación -->
     <nav aria-label="Paginación">
-      <ul class="pagination pagination-netflix justify-content-center my-3">
+      <ul class="pagination justify-content-center pagination-netflix my-3">
         <li class="page-item">
-          <button id="prevPage" class="page-link" disabled>Anterior</button>
+          <button id="firstPage" class="page-link" type="button">« Primera</button>
+        </li>
+        <li class="page-item">
+          <button id="prevPage" class="page-link" type="button">‹ Anterior</button>
         </li>
         <li class="page-item disabled">
           <span class="page-link">
@@ -75,7 +76,10 @@
           </span>
         </li>
         <li class="page-item">
-          <button id="nextPage" class="page-link">Siguiente</button>
+          <button id="nextPage" class="page-link" type="button">Siguiente ›</button>
+        </li>
+        <li class="page-item">
+          <button id="lastPage" class="page-link" type="button">Última »</button>
         </li>
       </ul>
     </nav>
@@ -85,7 +89,32 @@
 
   <script>
 
-    let currentPage = 1, pageSize = 5, totalPages = 1, lastFilters = {};
+    const PAGE_SIZE = 5;
+    let currentPage = 1, totalPages = 1;
+    let currentFilters = {};
+    
+    function updatePagination() {
+        document.getElementById('pageNumber').textContent = currentPage;
+        document.getElementById('pageCount').textContent = totalPages;
+        document.getElementById('firstPage').disabled = currentPage === 1;
+        document.getElementById('prevPage').disabled  = currentPage === 1;
+        document.getElementById('nextPage').disabled  = currentPage === totalPages;
+        document.getElementById('lastPage').disabled  = currentPage === totalPages;
+    }
+    
+    // evento para botones
+    document.getElementById('firstPage').addEventListener('click', () => fetchVideos(currentFilters, 1));
+    document.getElementById('prevPage').addEventListener('click', e => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (currentPage > 1) fetchVideos(currentFilters, currentPage - 1);
+    });    
+    document.getElementById('nextPage').addEventListener('click', e => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (currentPage < totalPages) fetchVideos(currentFilters, currentPage + 1);
+    });    document.getElementById('lastPage').addEventListener ('click', () => fetchVideos(currentFilters, totalPages));
+
 
     function renderTable(videos) {
         const tbody = document.querySelector('#videosTable tbody');
@@ -115,63 +144,54 @@
         }
     }
 
-    async function fetchVideos(filters) {
-        lastFilters = { ...filters };
-        const res = await fetch('/web-service/api/videos/search', {
-          method: 'POST',
-          headers: { 'Content-Type':'application/json' },
-          body: JSON.stringify({ ...filters, page: currentPage, pageSize })
-        });
-        if (!res.ok) throw new Error(res.statusText);
-        const { total, items } = await res.json();
-        totalPages = Math.max(1, Math.ceil(total / pageSize));
-        document.getElementById('pageNumber').textContent = currentPage;
-        document.getElementById('pageCount').textContent  = totalPages;
-        document.getElementById('prevPage').disabled = currentPage === 1;
-        document.getElementById('nextPage').disabled = currentPage === totalPages;
-        renderTable(items);
-      }
+    async function fetchVideos(filters, page = 1) {
+      currentFilters = filters;
+      currentPage = page;
+      const payload = {
+        ...filters,
+        page: page,
+        pageSize: PAGE_SIZE
+      };
+      const res = await fetch('/web-service/api/videos/search', {
+        method: 'POST',
+        headers: { 'Content-Type':'application/json','Accept':'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (!res.ok) throw new Error(res.statusText);
+
+      const { total, items } = await res.json();
+      totalPages = Math.ceil(total / PAGE_SIZE);
+      renderTable(items);
+      updatePagination();
+    }
 
     document.addEventListener('DOMContentLoaded', () => {
-        const form    = document.getElementById('filterForm');
-        const prevBtn = document.getElementById('prevPage');
-        const nextBtn = document.getElementById('nextPage');
-
-        // Carga inicial
-        fetchVideos({});
-
-        form.addEventListener('submit', e => {
+        // 1) Bind filtros
+        document.getElementById('filterForm').addEventListener('submit', e => {
           e.preventDefault();
-          currentPage = 1;
-          fetchVideos({
+          const filtros = {
             titulo: document.getElementById('fTitulo').value,
             autor:  document.getElementById('fAutor').value,
             fecha:  document.getElementById('fFecha').value
-          });
+          };
+          fetchVideos(filtros, 1);
         });
-
-        prevBtn.addEventListener('click', () => {
-          if (currentPage > 1) {
-            currentPage--;
-            fetchVideos(lastFilters);
-          }
-        });
-
-        nextBtn.addEventListener('click', () => {
-          if (currentPage < totalPages) {
-            currentPage++;
-            fetchVideos(lastFilters);
-          }
-        });
-
         document.getElementById('btnReset').addEventListener('click', () => {
           document.getElementById('fTitulo').value = '';
           document.getElementById('fAutor').value  = '';
           document.getElementById('fFecha').value  = '';
-          currentPage = 1;
-          fetchVideos({});
+          fetchVideos({}, 1);
         });
-    });
+
+        // 2) Bind paginación (AHORA ya existe en el DOM y no dispara submit)
+        document.getElementById('firstPage').addEventListener('click', () => fetchVideos(currentFilters, 1));
+        document.getElementById('prevPage').addEventListener('click',  () => fetchVideos(currentFilters, currentPage--));
+        document.getElementById('nextPage').addEventListener('click',  () => fetchVideos(currentFilters, currentPage++));
+        document.getElementById('lastPage').addEventListener('click',  () => fetchVideos(currentFilters, totalPages));
+
+        // 3) Carga inicial
+        fetchVideos({}, 1);
+      });
   </script>
 </body>
 </html>

@@ -26,7 +26,7 @@
 </head>
 <body>
   <div class="container">
-        <h2>Listado de Videos</h2>
+    <h2>Listado de Videos</h2>
 
     <!-- Formulario de filtros -->
     <form id="filterForm" class="row g-2 mb-3">
@@ -40,7 +40,7 @@
         <input id="fFecha" type="date" class="form-control">
       </div>
       <div class="col-auto">
-        <button type="submit" class="btn btn-success">Filtrar</button>
+          <button type="submit" class="btn btn-netflix" >Filtrar</button>
         <button id="btnReset" type="button" class="btn btn-secondary">Mostrar todo</button>
       </div>
     </form>
@@ -60,15 +60,32 @@
         </tbody>
       </table>
     </div>
+    
+
+    
+    <!-- Paginación -->
+    <nav aria-label="Paginación">
+      <ul class="pagination pagination-netflix justify-content-center my-3">
+        <li class="page-item">
+          <button id="prevPage" class="page-link" disabled>Anterior</button>
+        </li>
+        <li class="page-item disabled">
+          <span class="page-link">
+            Página <span id="pageNumber">1</span> de <span id="pageCount">1</span>
+          </span>
+        </li>
+        <li class="page-item">
+          <button id="nextPage" class="page-link">Siguiente</button>
+        </li>
+      </ul>
+    </nav>
 
     <a href="home.jsp" class="back-link">Volver al menú principal</a>
   </div>
 
-  <!-- Bootstrap + nuestro script -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
-          integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
-          crossorigin="anonymous"></script>
   <script>
+
+    let currentPage = 1, pageSize = 5, totalPages = 1, lastFilters = {};
 
     function renderTable(videos) {
         const tbody = document.querySelector('#videosTable tbody');
@@ -98,46 +115,62 @@
         }
     }
 
-    // Llama al endpoint POST /search con filtros y actualiza la tabla
     async function fetchVideos(filters) {
-      try {
+        lastFilters = { ...filters };
         const res = await fetch('/web-service/api/videos/search', {
           method: 'POST',
-          headers: {
-            'Content-Type':'application/json',
-            'Accept':'application/json'
-          },
-          body: JSON.stringify(filters)
+          headers: { 'Content-Type':'application/json' },
+          body: JSON.stringify({ ...filters, page: currentPage, pageSize })
         });
         if (!res.ok) throw new Error(res.statusText);
-        const data = await res.json();
-        renderTable(data);
-      } catch (e) {
-        console.error('Error al cargar videos:', e);
+        const { total, items } = await res.json();
+        totalPages = Math.max(1, Math.ceil(total / pageSize));
+        document.getElementById('pageNumber').textContent = currentPage;
+        document.getElementById('pageCount').textContent  = totalPages;
+        document.getElementById('prevPage').disabled = currentPage === 1;
+        document.getElementById('nextPage').disabled = currentPage === totalPages;
+        renderTable(items);
       }
-    }
 
     document.addEventListener('DOMContentLoaded', () => {
-      // carga inicial sin filtros
-      fetchVideos({});
+        const form    = document.getElementById('filterForm');
+        const prevBtn = document.getElementById('prevPage');
+        const nextBtn = document.getElementById('nextPage');
 
-      // manejar submit de filtros
-      document.getElementById('filterForm').addEventListener('submit', e => {
-        e.preventDefault();
-        fetchVideos({
-          titulo: document.getElementById('fTitulo').value,
-          autor: document.getElementById('fAutor').value,
-          fecha: document.getElementById('fFecha').value
-        });
-      });
-
-      // reset
-      document.getElementById('btnReset').addEventListener('click', () => {
-        document.getElementById('fTitulo').value = '';
-        document.getElementById('fAutor').value = '';
-        document.getElementById('fFecha').value = '';
+        // Carga inicial
         fetchVideos({});
-      });
+
+        form.addEventListener('submit', e => {
+          e.preventDefault();
+          currentPage = 1;
+          fetchVideos({
+            titulo: document.getElementById('fTitulo').value,
+            autor:  document.getElementById('fAutor').value,
+            fecha:  document.getElementById('fFecha').value
+          });
+        });
+
+        prevBtn.addEventListener('click', () => {
+          if (currentPage > 1) {
+            currentPage--;
+            fetchVideos(lastFilters);
+          }
+        });
+
+        nextBtn.addEventListener('click', () => {
+          if (currentPage < totalPages) {
+            currentPage++;
+            fetchVideos(lastFilters);
+          }
+        });
+
+        document.getElementById('btnReset').addEventListener('click', () => {
+          document.getElementById('fTitulo').value = '';
+          document.getElementById('fAutor').value  = '';
+          document.getElementById('fFecha').value  = '';
+          currentPage = 1;
+          fetchVideos({});
+        });
     });
   </script>
 </body>

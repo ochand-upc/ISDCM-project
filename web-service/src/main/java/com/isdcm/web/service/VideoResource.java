@@ -5,6 +5,7 @@
 package com.isdcm.web.service;
 
 import com.isdcm.dao.VideoDAO;
+import com.isdcm.model.PaginatedResponse;
 import com.isdcm.model.Video;
 import com.isdcm.model.VideoFilter;
 import com.isdcm.utils.VideoPlaybackManager;
@@ -123,24 +124,28 @@ public class VideoResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response buscarVideos(VideoFilter filter) {
         try {
-            List<Video> resultados = VideoDAO.buscarVideos(
+            int total = VideoDAO.countVideos(
+                filter.getTitulo(),
+                filter.getAutor(),
+                filter.getFecha()
+            );
+            List<Video> items = VideoDAO.buscarVideos(
                 filter.getTitulo(),
                 filter.getAutor(),
                 filter.getFecha(),
                 filter.getPage(),
                 filter.getPageSize()
             );
-            // Para asegurarnos de serializar correctamente la lista:
-            GenericEntity<List<Video>> entity =
-                new GenericEntity<>(resultados){};
+            PaginatedResponse<Video> page = new PaginatedResponse<>(total, items);
+            GenericEntity<PaginatedResponse<Video>> entity =
+                new GenericEntity<>(page){};
             return Response.ok(entity).build();
-        } catch (SQLException | IOException e) {
+        } catch(SQLException|IOException e) {
             e.printStackTrace();
-            return Response
-                .status(Response.Status.INTERNAL_SERVER_ERROR)
-                .entity("{\"error\":\"No se pudo buscar videos.\"}")
-                .type(MediaType.APPLICATION_JSON)
-                .build();
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                           .entity("{\"error\":\"No se pudo buscar videos.\"}")
+                           .type(MediaType.APPLICATION_JSON)
+                           .build();
         }
     }
 }

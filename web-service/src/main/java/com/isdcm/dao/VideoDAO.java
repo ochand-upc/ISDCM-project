@@ -48,36 +48,36 @@ public class VideoDAO {
         return DatabaseExecutor.ejecutarUpdate(sql, id);
     }
     
+
     /**
-     * Busca vídeos por filtros y paginación.
-    */
+     * Busca vídeos con filtros y paginación.
+     */
     public static List<Video> buscarVideos(String titulo, String autor, String fecha, int page, int pageSize)
             throws SQLException, IOException {
-        
+
         StringBuilder sql = new StringBuilder("SELECT * FROM VIDEOS");
         List<Object> params = new ArrayList<>();
         boolean hasWhere = false;
 
         if (titulo != null && !titulo.isEmpty()) {
-            sql.append(hasWhere ? " AND" : " WHERE")
-               .append(" LOWER(TITULO) LIKE ?");
+            sql.append(hasWhere ? " AND" : " WHERE");
+            sql.append(" LOWER(TITULO) LIKE ?");
             params.add("%" + titulo.toLowerCase() + "%");
             hasWhere = true;
         }
         if (autor != null && !autor.isEmpty()) {
-            sql.append(hasWhere ? " AND" : " WHERE")
-               .append(" LOWER(AUTOR) LIKE ?");
+            sql.append(hasWhere ? " AND" : " WHERE");
+            sql.append(" LOWER(AUTOR) LIKE ?");
             params.add("%" + autor.toLowerCase() + "%");
             hasWhere = true;
         }
         if (fecha != null && !fecha.isEmpty()) {
-            sql.append(hasWhere ? " AND" : " WHERE")
-               .append(" FECHA LIKE ?");
+            sql.append(hasWhere ? " AND" : " WHERE");
+            sql.append(" FECHA LIKE ?");
             params.add(fecha + "%");
-            hasWhere = true;
         }
 
-        // INSERTAMOS un espacio antes de ORDER y otro antes de OFFSET
+        // paginación
         sql.append(" ORDER BY FECHA DESC")
            .append(" OFFSET ? ROWS FETCH NEXT ? ROWS ONLY");
         params.add((page - 1) * pageSize);
@@ -104,6 +104,38 @@ public class VideoDAO {
                 lista.add(v);
             }
             return lista;
+        }
+    }
+    
+    public static int countVideos(String titulo, String autor, String fecha)
+            throws SQLException, IOException {
+        StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM VIDEOS");
+        List<Object> params = new ArrayList<>();
+        boolean hasWhere = false;
+
+        if (titulo != null && !titulo.isEmpty()) {
+            sql.append(hasWhere ? " AND" : " WHERE");
+            sql.append(" LOWER(TITULO) LIKE ?");
+            params.add("%" + titulo.toLowerCase() + "%");
+            hasWhere = true;
+        }
+        if (autor != null && !autor.isEmpty()) {
+            sql.append(hasWhere ? " AND" : " WHERE");
+            sql.append(" LOWER(AUTOR) LIKE ?");
+            params.add("%" + autor.toLowerCase() + "%");
+            hasWhere = true;
+        }
+        if (fecha != null && !fecha.isEmpty()) {
+            sql.append(hasWhere ? " AND" : " WHERE");
+            sql.append(" FECHA LIKE ?");
+            params.add(fecha + "%");
+        }
+
+        try (DatabaseExecutor.ResultSetWrapper wrap =
+                 DatabaseExecutor.ejecutarQuery(sql.toString(), params.toArray());
+             ResultSet rs = wrap.getResultSet()) {
+            rs.next();
+            return rs.getInt(1);
         }
     }
 }

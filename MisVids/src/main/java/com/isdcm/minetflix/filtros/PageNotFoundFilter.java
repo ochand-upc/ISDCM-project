@@ -22,7 +22,6 @@ public class PageNotFoundFilter implements Filter {
         "registroVid.jsp",
         "servletRegistroVid",
         "listadoVid.jsp",
-        "servletListadoVid",
         "login.jsp",
         "registroUsu.jsp",
         "logout.jsp",

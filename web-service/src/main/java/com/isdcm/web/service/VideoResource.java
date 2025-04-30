@@ -4,13 +4,18 @@
  */
 package com.isdcm.web.service;
 
+import com.isdcm.dao.VideoDAO;
+import com.isdcm.model.Video;
+import com.isdcm.model.VideoFilter;
 import com.isdcm.utils.VideoPlaybackManager;
 import jakarta.ws.rs.*;
-import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.GenericEntity;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import jakarta.ws.rs.core.Response.Status;
 import jakarta.ws.rs.core.StreamingOutput;
+import java.io.IOException;
+import java.sql.SQLException;
+import java.util.List;
 
 @Path("/videos")
 @Produces(MediaType.APPLICATION_JSON)
@@ -51,6 +56,12 @@ public class VideoResource {
         }
     }
     
+    /**
+     * 
+     * @param id
+     * @param rangeHeader
+     * @return 
+     */
     @GET
     @Path("/{id}/stream")
     public Response streamVideo(
@@ -101,5 +112,35 @@ public class VideoResource {
                 e.printStackTrace();
                 return Response.serverError().build();
             }
+    }
+    
+     /**
+     * Filtrar vídeos con criterios y paginación.
+     * POST /api/videos/search
+     */
+    @POST
+    @Path("/search")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response buscarVideos(VideoFilter filter) {
+        try {
+            List<Video> resultados = VideoDAO.buscarVideos(
+                filter.getTitulo(),
+                filter.getAutor(),
+                filter.getFecha(),
+                filter.getPage(),
+                filter.getPageSize()
+            );
+            // Para asegurarnos de serializar correctamente la lista:
+            GenericEntity<List<Video>> entity =
+                new GenericEntity<>(resultados){};
+            return Response.ok(entity).build();
+        } catch (SQLException | IOException e) {
+            e.printStackTrace();
+            return Response
+                .status(Response.Status.INTERNAL_SERVER_ERROR)
+                .entity("{\"error\":\"No se pudo buscar videos.\"}")
+                .type(MediaType.APPLICATION_JSON)
+                .build();
+        }
     }
 }

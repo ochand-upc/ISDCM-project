@@ -23,7 +23,7 @@ public class servletVerVideo extends HttpServlet {
 
         String videoId = request.getParameter("id");
         if (videoId == null || videoId.isEmpty()) {
-            response.sendRedirect("servletListadoVid");
+            response.sendRedirect("listadoVid.jsp");
             return;
         }
 
@@ -32,7 +32,7 @@ public class servletVerVideo extends HttpServlet {
             Video video = VideoDAO.obtenerVideoPorId(id);
             if (video == null) {
                 request.setAttribute("mensajeError", "El video no existe.");
-                request.getRequestDispatcher("servletListadoVid").forward(request, response);
+                request.getRequestDispatcher("listadoVid.jsp").forward(request, response);
                 return;
             }
 
@@ -51,7 +51,7 @@ public class servletVerVideo extends HttpServlet {
         } catch (SQLException | NumberFormatException e) {
             e.printStackTrace();
             request.setAttribute("mensajeError", "Error al cargar el video.");
-            request.getRequestDispatcher("servletListadoVid").forward(request, response);
+            request.getRequestDispatcher("listadoVid.jsp").forward(request, response);
         }
     }
 }

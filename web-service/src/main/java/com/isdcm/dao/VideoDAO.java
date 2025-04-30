@@ -10,6 +10,8 @@ import com.isdcm.model.Video;
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class VideoDAO {
 
@@ -44,5 +46,64 @@ public class VideoDAO {
     public static boolean incrementarReproducciones(int id) throws SQLException, IOException {
         String sql = "UPDATE VIDEOS SET REPRODUCCIONES = REPRODUCCIONES + 1 WHERE ID = ?";
         return DatabaseExecutor.ejecutarUpdate(sql, id);
+    }
+    
+    /**
+     * Busca vídeos por filtros y paginación.
+    */
+    public static List<Video> buscarVideos(String titulo, String autor, String fecha, int page, int pageSize)
+            throws SQLException, IOException {
+        
+        StringBuilder sql = new StringBuilder("SELECT * FROM VIDEOS");
+        List<Object> params = new ArrayList<>();
+        boolean hasWhere = false;
+
+        if (titulo != null && !titulo.isEmpty()) {
+            sql.append(hasWhere ? " AND" : " WHERE")
+               .append(" LOWER(TITULO) LIKE ?");
+            params.add("%" + titulo.toLowerCase() + "%");
+            hasWhere = true;
+        }
+        if (autor != null && !autor.isEmpty()) {
+            sql.append(hasWhere ? " AND" : " WHERE")
+               .append(" LOWER(AUTOR) LIKE ?");
+            params.add("%" + autor.toLowerCase() + "%");
+            hasWhere = true;
+        }
+        if (fecha != null && !fecha.isEmpty()) {
+            sql.append(hasWhere ? " AND" : " WHERE")
+               .append(" FECHA LIKE ?");
+            params.add(fecha + "%");
+            hasWhere = true;
+        }
+
+        // INSERTAMOS un espacio antes de ORDER y otro antes de OFFSET
+        sql.append(" ORDER BY FECHA DESC")
+           .append(" OFFSET ? ROWS FETCH NEXT ? ROWS ONLY");
+        params.add((page - 1) * pageSize);
+        params.add(pageSize);
+
+        try (DatabaseExecutor.ResultSetWrapper wrap =
+                 DatabaseExecutor.ejecutarQuery(sql.toString(), params.toArray());
+             ResultSet rs = wrap.getResultSet()) {
+
+            List<Video> lista = new ArrayList<>();
+            while (rs.next()) {
+                Video v = new Video();
+                v.setId(rs.getInt("ID"));
+                v.setTitulo(rs.getString("TITULO"));
+                v.setAutor(rs.getString("AUTOR"));
+                v.setFecha(rs.getString("FECHA"));
+                v.setDuracion(rs.getDouble("DURACION"));
+                v.setReproducciones(rs.getInt("REPRODUCCIONES"));
+                v.setDescripcion(rs.getString("DESCRIPCION"));
+                v.setMimeType(rs.getString("MIME_TYPE"));
+                v.setRutaVideo(rs.getString("RUTAVIDEO"));
+                v.setTipoFuente(rs.getString("TIPO_FUENTE"));
+                v.setTamano(rs.getLong("TAMANO"));
+                lista.add(v);
+            }
+            return lista;
+        }
     }
 }

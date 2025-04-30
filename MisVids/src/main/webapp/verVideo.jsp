@@ -81,11 +81,11 @@
         <div class="video-info mt-3">
             <p><strong>Autor:</strong> <%= video.getAutor() %></p>
             <p><strong>Fecha:</strong> <%= video.getFecha() %></p>
-            <p><strong>Descripción:</strong> <%= video.getDescripcion() %></p>
+            <p><strong>Descripcióón:</strong> <%= video.getDescripcion() %></p>
             <p><strong>Reproducciones:</strong> <%= video.getReproducciones() %></p>
         </div>
 
-        <a href="servletListadoVid" class="btn btn-danger mt-2">Volver al listado</a>
+        <a href="listadoVid.jsp" class="btn btn-danger mt-2">Volver al listado</a>
 
         <% if (request.getAttribute("mensajeError")!=null || request.getAttribute("mensajeExito")!=null) { %>
           <div class="position-fixed top-0 end-0 p-3" style="z-index:9999">

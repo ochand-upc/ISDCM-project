@@ -4,130 +4,141 @@
     Author     : alumne
 --%>
 
-<%@ page session="true" %>
+<%@ page session="true" contentType="text/html; charset=UTF-8" %>
 <%
+    // Control de sesiÃ³n igual que antes
     if (session.getAttribute("usuarioLogueado") == null) {
         response.sendRedirect("login.jsp");
         return;
     }
 %>
+<!DOCTYPE html>
 <html lang="es">
 <head>
-    <title>Listado de Videos - MiNetflix</title>
-    <!-- Bootstrap 5 CSS (CDN) -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" 
-          rel="stylesheet"
-          integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
-          crossorigin="anonymous">
-    <link rel="stylesheet" href="css/listadoVid.css">
+  <meta charset="UTF-8">
+  <title>Listado de Videos - MiNetflix</title>
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" 
+        rel="stylesheet" 
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" 
+        crossorigin="anonymous">
+  <link rel="stylesheet" href="css/listadoVid.css">
 </head>
 <body>
-    <div class="container">
+  <div class="container">
         <h2>Listado de Videos</h2>
 
-        <table>
-            <thead>
-                <tr>
-                    <th>Título</th>
-                    <th>Autor</th>
-                    <th>Fecha</th>
-                    <th>Duración</th>
-                    <th>Reproducciones</th>
-                    <th>Descripción</th>
-                    <th>Formato</th>
-                    <th>Tamaño</th>
-                    <th>Enlace</th>
-                </tr>
-            </thead>
-            <tbody>
-            <%
-                java.util.List<com.isdcm.minetflix.model.Video> listaVideos = 
-                    (java.util.List<com.isdcm.minetflix.model.Video>) request.getAttribute("listaVideos");
+    <!-- Formulario de filtros -->
+    <form id="filterForm" class="row g-2 mb-3">
+      <div class="col-md">
+        <input id="fTitulo" type="text" class="form-control" placeholder="TÃ­tulo">
+      </div>
+      <div class="col-md">
+        <input id="fAutor" type="text" class="form-control" placeholder="Autor">
+      </div>
+      <div class="col-md">
+        <input id="fFecha" type="date" class="form-control">
+      </div>
+      <div class="col-auto">
+        <button type="submit" class="btn btn-success">Filtrar</button>
+        <button id="btnReset" type="button" class="btn btn-secondary">Mostrar todo</button>
+      </div>
+    </form>
 
-                if (listaVideos != null && !listaVideos.isEmpty()) {
-                    for (com.isdcm.minetflix.model.Video vid : listaVideos) {
-            %>
-                <tr>
-                    <td><%= vid.getTitulo() %></td>
-                    <td><%= vid.getAutor() %></td>
-                    <td><%= vid.getFecha() %></td>
-                    <td><%= vid.getDuracion() %></td>
-                    <td><%= vid.getReproducciones() %></td>
-                    <td><%= vid.getDescripcion() %></td>
-                    <td><%= vid.getMimeType() %></td>
-                    <td><%= vid.getTamano() %></td>
-                    <td><a href="servletVerVideo?id=<%= vid.getId() %>" class="link">Ver video</a></td>            <%
-                    }
-                } else {
-            %>
-                <tr>
-                    <td colspan="8">No hay videos registrados.</td>
-                </tr>
-            <%
-                }
-            %>
-            </tbody>
-        </table>
-            
-        <% if (request.getAttribute("mensajeError") != null) { %>
-            <!-- Contenedor para el toast (parte superior derecha) -->
-            <div class="position-fixed top-0 end-0 p-3" style="z-index: 9999">
-                <!-- Toast en color de fondo rojo (text-bg-danger) -->
-                <div id="errorToast" class="toast align-items-center text-bg-danger border-0"
-                     role="alert" aria-live="assertive" aria-atomic="true"
-                     data-bs-autohide="false">
-                    <div class="d-flex">
-                        <div class="toast-body">
-                            <%= request.getAttribute("mensajeError") %>
-                        </div>
-                        <button type="button" class="btn-close btn-close-white me-2 m-auto"
-                                data-bs-dismiss="toast" aria-label="Close"></button>
-                    </div>
-                </div>
-            </div>
-            <!-- Script para inicializar el toast automáticamente -->
-            <script>
-                document.addEventListener('DOMContentLoaded', function() {
-                    var toastEl = document.getElementById('errorToast');
-                    var toast = new bootstrap.Toast(toastEl);
-                    toast.show();
-                });
-            </script>
-        <% } %>
-
-        <% if (request.getAttribute("mensajeExito") != null) { %>
-             <!-- Contenedor para el toast (parte superior derecha) -->
-            <div class="position-fixed top-0 end-0 p-3" style="z-index: 9999;">
-                <!-- Toast con fondo verde (text-bg-success) -->
-                <div id="successToast" class="toast align-items-center text-bg-success border-0"
-                     role="alert" aria-live="assertive" aria-atomic="true"
-                     data-bs-autohide="false">
-                    <div class="d-flex">
-                        <div class="toast-body">
-                            <%= request.getAttribute("mensajeExito") %>
-                        </div>
-                        <button type="button" class="btn-close btn-close-white me-2 m-auto"
-                                data-bs-dismiss="toast" aria-label="Close"></button>
-                    </div>
-                </div>
-            </div>
-            <!-- Script para inicializar el toast automáticamente -->
-            <script>
-                document.addEventListener('DOMContentLoaded', function() {
-                    var toastEl = document.getElementById('successToast');
-                    var toast = new bootstrap.Toast(toastEl);
-                    toast.show();
-                });
-            </script>
-        <% } %>
-        
-        
-        <a href="home.jsp" class="back-link">Volver al menú principal</a>
+    <!-- Tabla de resultados -->
+    <div>
+      <table id="videosTable">
+        <thead>
+          <tr>
+            <th>TÃ­tulo</th><th>Autor</th><th>Fecha</th><th>DuraciÃ³n</th>
+            <th>Reproducciones</th><th>DescripciÃ³n</th><th>Formato</th>
+            <th>TamaÃ±o</th><th>Enlace</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Se inyectan filas aquÃ­ -->
+        </tbody>
+      </table>
     </div>
-        
-    <!-- Bootstrap 5 JS (CDN) -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
-            integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
-            crossorigin="anonymous"></script>
+
+    <a href="home.jsp" class="back-link">Volver al menÃº principal</a>
+  </div>
+
+  <!-- Bootstrap + nuestro script -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+          integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+          crossorigin="anonymous"></script>
+  <script>
+
+    function renderTable(videos) {
+        const tbody = document.querySelector('#videosTable tbody');
+        tbody.innerHTML = '';
+        if (videos.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="9" class="text-center">No hay videos registrados.</td></tr>`;
+          return;
+        }
+        for (const v of videos) {
+          const row = document.createElement('tr');
+          row.innerHTML = 
+            "<td>"+v.titulo+"</td>"+
+            "<td>"+v.autor+"</td>"+
+            "<td>"+v.fecha+"</td>"+
+            "<td>"+v.duracion+"</td>"+
+            "<td>"+v.reproducciones+"</td>"+
+            "<td>"+v.descripcion+"</td>"+
+            "<td>"+v.mimeType+"</td>"+
+            "<td>"+v.tamano+"</td>"+
+            "<td>"+
+              "<a href="+"servletVerVideo?id="+v.id+" "+
+                 "class="+"'link'>"+
+                 "Ver video"+
+              "</a>"+
+            "</td>";
+          tbody.appendChild(row);
+        }
+    }
+
+    // Llama al endpoint POST /search con filtros y actualiza la tabla
+    async function fetchVideos(filters) {
+      try {
+        const res = await fetch('/web-service/api/videos/search', {
+          method: 'POST',
+          headers: {
+            'Content-Type':'application/json',
+            'Accept':'application/json'
+          },
+          body: JSON.stringify(filters)
+        });
+        if (!res.ok) throw new Error(res.statusText);
+        const data = await res.json();
+        renderTable(data);
+      } catch (e) {
+        console.error('Error al cargar videos:', e);
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // carga inicial sin filtros
+      fetchVideos({});
+
+      // manejar submit de filtros
+      document.getElementById('filterForm').addEventListener('submit', e => {
+        e.preventDefault();
+        fetchVideos({
+          titulo: document.getElementById('fTitulo').value,
+          autor: document.getElementById('fAutor').value,
+          fecha: document.getElementById('fFecha').value
+        });
+      });
+
+      // reset
+      document.getElementById('btnReset').addEventListener('click', () => {
+        document.getElementById('fTitulo').value = '';
+        document.getElementById('fAutor').value = '';
+        document.getElementById('fFecha').value = '';
+        fetchVideos({});
+      });
+    });
+  </script>
 </body>
 </html>

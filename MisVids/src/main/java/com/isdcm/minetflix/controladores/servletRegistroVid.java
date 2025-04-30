@@ -181,6 +181,6 @@ public class servletRegistroVid extends HttpServlet {
         }
 
         sesion.setAttribute("mensajeExito", "Vídeo registrado correctamente.");
-        response.sendRedirect("servletListadoVid");
+        response.sendRedirect("listadoVid.jsp");
     }    
 }

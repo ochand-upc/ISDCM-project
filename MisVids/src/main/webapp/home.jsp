@@ -30,8 +30,8 @@
             <button type="submit">➕ Agregar Video</button>
         </form>
 
-        <form action="servletListadoVid">
-            <button type="submit">📋 Ver Listado de Videos</button>
+        <form action="listadoVid.jsp">
+            <button >📋 Ver Listado de Videos</button>
         </form>
         <form action="logout.jsp">
             <button type="submit">🚪 Cerrar Sesión</button>

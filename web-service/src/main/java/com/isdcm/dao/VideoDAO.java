@@ -59,7 +59,8 @@ public class VideoDAO {
 
         // Lista blanca de columnas ordenables
         Set<String> allowedFields = Set.of(
-          "titulo","autor","fecha","duracion","reproducciones"
+          "titulo","autor","fecha","duracion","reproducciones", 
+                "mime_type", "tamano"
         );
         if (!allowedFields.contains(sortField)) {
             sortField = "fecha";
@@ -95,7 +96,7 @@ public class VideoDAO {
            .append(" OFFSET ? ROWS FETCH NEXT ? ROWS ONLY");
         params.add((page - 1) * pageSize);
         params.add(pageSize);
-
+        
         try (ResultSetWrapper wrap =
                  DatabaseExecutor.ejecutarQuery(sql.toString(), params.toArray());
              ResultSet rs = wrap.getResultSet()) {

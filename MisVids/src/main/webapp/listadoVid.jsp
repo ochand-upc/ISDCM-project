@@ -54,9 +54,9 @@
                 <th data-field="autor" class="sortable text-start">Autor <span class="sort-indicator"></span></th>
                 <th data-field="fecha" class="sortable text-center">Fecha <span class="sort-indicator"></span></th>
                 <th data-field="duracion" class="sortable text-center">Duración <span class="sort-indicator"></span></th>
-                <th data-field="vistas" class="sortable text-center">Vistas <span class="sort-indicator"></span></th>
-                <th data-field="descripcion text-start">Descripción</th>
-                <th data-field="mimeType text-start" class="sortable">Formato <span class="sort-indicator"></span></th>
+                <th data-field="reproducciones" class="sortable text-center">Vistas <span class="sort-indicator"></span></th>
+                <th data-field="descripcion" class="text-start">Descripción</th>
+                <th data-field="mime_type" class="sortable text-start">Formato <span class="sort-indicator"></span></th>
                 <th data-field="tamano" class="sortable text-center" >Tamaño <span class="sort-indicator"></span></th>
                 <th class="text-center">Enlace</th>
               </tr>
@@ -120,20 +120,6 @@
       document.getElementById('lastPage').disabled  = currentPage === totalPages;
     }
 
-    // evento para botones
-    document.getElementById('firstPage').addEventListener('click', () => fetchVideos(currentFilters, 1));
-    document.getElementById('prevPage').addEventListener('click', e => {
-      e.preventDefault();
-      e.stopPropagation();
-      if (currentPage > 1) fetchVideos(currentFilters, currentPage - 1);
-    });    
-    document.getElementById('nextPage').addEventListener('click', e => {
-      e.preventDefault();
-      e.stopPropagation();
-      if (currentPage < totalPages) fetchVideos(currentFilters, currentPage + 1);
-    });    document.getElementById('lastPage').addEventListener ('click', () => fetchVideos(currentFilters, totalPages));
-
-
     // 1) formatea "2025-01-02 13:45:00" a "2 de enero de 2025" (o "20 de marzo de 2025")
     function formatDate(iso) {
       const d = new Date(iso.replace(' ', 'T'));
@@ -159,7 +145,7 @@
     // formatea bytes a KB/MB/GB
     function formatBytes(bytes) {
       if (bytes == null) return '—';
-      const kb = 1024, mb = kb*1024, gb = mb*1024;
+      const kb = 1000, mb = kb*1000, gb = mb*1000;
       if (bytes >= gb) return (bytes/gb).toFixed(1) + ' GB';
       if (bytes >= mb) return (bytes/mb).toFixed(1) + ' MB';
       if (bytes >= kb) return (bytes/kb).toFixed(1) + ' KB';
@@ -268,9 +254,16 @@
 
         // 2) Bind paginación (AHORA ya existe en el DOM y no dispara submit)
         document.getElementById('firstPage').addEventListener('click', () => fetchVideos(currentFilters, 1));
-        document.getElementById('prevPage').addEventListener('click',  () => fetchVideos(currentFilters, currentPage--));
-        document.getElementById('nextPage').addEventListener('click',  () => fetchVideos(currentFilters, currentPage++));
-        document.getElementById('lastPage').addEventListener('click',  () => fetchVideos(currentFilters, totalPages));
+        document.getElementById('prevPage').addEventListener('click', e => {
+          e.preventDefault();
+          e.stopPropagation();
+          if (currentPage > 1) fetchVideos(currentFilters, currentPage - 1);
+        });    
+        document.getElementById('nextPage').addEventListener('click', e => {
+          e.preventDefault();
+          e.stopPropagation();
+          if (currentPage < totalPages) fetchVideos(currentFilters, currentPage + 1);
+        });    document.getElementById('lastPage').addEventListener ('click', () => fetchVideos(currentFilters, totalPages));
         document.getElementById('pageInput').addEventListener('keydown', e => {
           if (e.key === 'Enter') {
             e.preventDefault();
@@ -282,7 +275,7 @@
         });
         
         // 3) Bind ordenación:
-        bindSortControls()
+        bindSortControls();
 
         // 4) Carga inicial
         fetchVideos({}, 1);

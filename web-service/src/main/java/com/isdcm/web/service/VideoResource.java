@@ -9,6 +9,14 @@ import com.isdcm.model.PaginatedResponse;
 import com.isdcm.model.Video;
 import com.isdcm.model.VideoFilter;
 import com.isdcm.utils.VideoPlaybackManager;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.headers.Header;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.GenericEntity;
 import jakarta.ws.rs.core.MediaType;
@@ -27,6 +35,32 @@ public class VideoResource {
      * Método HTTP: PUT
      * URL: /{context}/api/videos/{id}/reproducir
      */
+    @Operation(summary = "Incrementa contador de vistas")
+    @ApiResponses({
+      @ApiResponse(responseCode = "200",
+        description = "Reproducción registrada",
+        content = @Content(
+          mediaType = MediaType.APPLICATION_JSON,
+          examples = @ExampleObject(name  = "SuccessExampleExample", value = "{\"success\":true,\"id\":5}")
+        )
+      ),
+      @ApiResponse(responseCode = "404",
+        description = "Vídeo no encontrado",
+        content = @Content(
+        mediaType = MediaType.APPLICATION_JSON,
+        examples = @ExampleObject(name  = "NotFoundExample",
+                        value = "{\"error\":\"Video no encontrado\",\"id\":5}")
+        )
+      ),
+      @ApiResponse(responseCode = "500",
+        description = "Error interno",
+        content = @Content(
+          mediaType = MediaType.APPLICATION_JSON,
+          examples = @ExampleObject(name  = "ServerErrorExample",
+                            value = "{\"error\":\"Error interno al actualizar reproducciones.\"}")
+        )
+      )
+    })
     @PUT
     @Path("/{id}/views")
     public Response registrarVistas(@PathParam("id") int id) {
@@ -63,6 +97,52 @@ public class VideoResource {
      * @param rangeHeader
      * @return 
      */
+    @Operation(summary = "Stream de video almancenado en base de datos")
+    @ApiResponses({
+      @ApiResponse(
+        responseCode = "200",
+        description  = "Stream completo del vídeo",
+        content = @Content(
+          mediaType = "video/mp4",
+          schema    = @Schema(type = "string", format = "binary")
+        )
+      ),
+      @ApiResponse(
+        responseCode = "206",
+        description  = "Stream parcial (rango solicitado)",
+        content = @Content(
+          mediaType = "video/mp4",
+          schema    = @Schema(type = "string", format = "binary")
+        ),
+        headers = @Header(
+          name        = "Content-Range",
+          description = "rango enviado / total bytes",
+          schema      = @Schema(type = "string", example = "bytes 0-1023/2048")
+        )
+      ),
+      @ApiResponse(
+        responseCode = "404",
+        description  = "Vídeo no encontrado",
+        content = @Content(
+          mediaType = MediaType.APPLICATION_JSON,
+          examples = @ExampleObject(
+            name  = "NotFoundExample",
+            value = "{\"error\":\"Video no encontrado\",\"id\":5}"
+          )
+        )
+      ),
+      @ApiResponse(
+        responseCode = "500",
+        description  = "Error interno del servidor",
+        content = @Content(
+          mediaType = MediaType.APPLICATION_JSON,
+          examples = @ExampleObject(
+            name  = "ServerErrorExample",
+            value = "{\"error\":\"Error durante el streaming del video.\"}"
+          )
+        )
+      )
+    })
     @GET
     @Path("/{id}/stream")
     public Response streamVideo(
@@ -115,10 +195,61 @@ public class VideoResource {
             }
     }
     
-     /**
-     * Filtrar vídeos con criterios y paginación.
-     * POST /api/videos/search
-     */
+    /**
+    * Filtrar vídeos con criterios y paginación.
+    * POST /api/videos/search
+    */
+    @Operation(summary = "Filtros para listado")
+    @RequestBody(
+      description = "Objeto con filtros (título, autor, fecha, orden, página, tamaño)",
+      required    = true,
+      content     = @Content(
+        mediaType = MediaType.APPLICATION_JSON,
+        schema    = @Schema(implementation = VideoFilter.class),
+        examples  = @ExampleObject(
+          name  = "FilterExample",
+          value = "{\n" +
+                  "  \"titulo\": \"Java\",\n" +
+                  "  \"autor\": \"Ana\",\n" +
+                  "  \"fecha\": \"2025-05-01\",\n" +
+                  "  \"sortField\": \"titulo\",\n" +
+                  "  \"sortOrder\": \"asc\",\n" +
+                  "  \"page\": 1,\n" +
+                  "  \"pageSize\": 10\n" +
+                  "}"
+        )
+      )
+    )
+    @ApiResponses({
+      @ApiResponse(
+        responseCode = "200",
+        description  = "Listado paginado de vídeos",
+        content = @Content(
+          mediaType = MediaType.APPLICATION_JSON,
+          schema    = @Schema(implementation = PaginatedResponse.class),
+          examples  = @ExampleObject(
+            name  = "PaginatedExample",
+            value = "{\n" +
+                    "  \"total\": 42,\n" +
+                    "  \"items\": [\n" +
+                    "    {\"id\":1,\"titulo\":\"Mi vídeo\",\"autor\":\"Ana\",\"fecha\":\"2025-04-30\"}\n" +
+                    "  ]\n" +
+                    "}"
+          )
+        )
+      ),
+      @ApiResponse(
+        responseCode = "500",
+        description  = "Error interno al buscar vídeos",
+        content = @Content(
+          mediaType = MediaType.APPLICATION_JSON,
+          examples = @ExampleObject(
+            name  = "SearchErrorExample",
+            value = "{\"error\":\"No se pudo buscar videos.\"}"
+          )
+        )
+      )
+    })
     @POST
     @Path("/search")
     @Consumes(MediaType.APPLICATION_JSON)

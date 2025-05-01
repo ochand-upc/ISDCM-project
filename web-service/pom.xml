@@ -38,6 +38,31 @@
       <artifactId>jcodec</artifactId>
       <version>0.2.5</version>
     </dependency>
+    
+    <!-- API Jakarta EE 10 (GlassFish ya la provee) -->
+    <dependency>
+      <groupId>jakarta.platform</groupId>
+      <artifactId>jakarta.jakartaee-api</artifactId>
+      <version>${jakartaee.version}</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <!-- Swagger para JAX-RS con namespace Jakarta -->
+    <dependency>
+      <groupId>io.swagger.core.v3</groupId>
+      <artifactId>swagger-jaxrs2-jakarta</artifactId>
+      <version>2.2.30</version>
+    </dependency>
+    <dependency>
+      <groupId>io.swagger.core.v3</groupId>
+      <artifactId>swagger-integration-jakarta</artifactId>
+      <version>2.2.30</version>
+    </dependency>
+    <dependency>
+      <groupId>io.swagger.core.v3</groupId>
+      <artifactId>swagger-annotations-jakarta</artifactId>
+      <version>2.2.30</version>
+    </dependency>
   </dependencies>
 
   <build>

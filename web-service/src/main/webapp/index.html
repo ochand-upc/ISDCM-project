@@ -1,10 +1,48 @@
 <!DOCTYPE html>
-<html>
-    <head>
-        <title>Start Page</title>
-        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    </head>
-    <body>
-        <h1>Hello World!</h1>
-    </body>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>API Docs</title>
+  <!-- Estilos de Swagger UI desde CDN -->
+  <link rel="stylesheet"
+        href="https://unpkg.com/swagger-ui-dist/swagger-ui.css" />
+</head>
+<body>
+  <div id="swagger-ui"></div>
+  <!-- Lógica de Swagger UI desde CDN -->
+  <script src="https://unpkg.com/swagger-ui-dist/swagger-ui-bundle.js"></script>
+  <script>
+    /*window.onload = () => {
+      SwaggerUIBundle({
+        url: "/web-service/api/openapi.json",
+        dom_id: "#swagger-ui",
+        presets: [
+          SwaggerUIBundle.presets.apis,
+          SwaggerUIBundle.SwaggerUIStandalonePreset
+        ],
+        layout: "BaseLayout"
+      });
+    };*/
+    window.onload = async () => {
+      // 1) Descarga el spec
+      const res = await fetch("api/openapi.json");
+      const spec = await res.json();
+
+      // 2) Elimina los endpoints WADL que no quieres ver
+      delete spec.paths["/api/application.wadl"];
+      delete spec.paths["/api/application.wadl/{path}"];
+
+      // 3) Inicia Swagger UI con el spec ya “limpio”
+      SwaggerUIBundle({
+        spec,
+        dom_id: "#swagger-ui",
+        presets: [
+          SwaggerUIBundle.presets.apis,
+          SwaggerUIBundle.SwaggerUIStandalonePreset
+        ],
+        layout: "BaseLayout"
+      });
+    };
+  </script>
+</body>
 </html>

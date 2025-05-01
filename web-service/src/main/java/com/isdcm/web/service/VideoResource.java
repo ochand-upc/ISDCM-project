@@ -10,6 +10,8 @@ import com.isdcm.model.Video;
 import com.isdcm.model.VideoFilter;
 import com.isdcm.utils.VideoPlaybackManager;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.headers.Header;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
@@ -63,6 +65,8 @@ public class VideoResource {
     })
     @PUT
     @Path("/{id}/views")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
     public Response registrarVistas(@PathParam("id") int id) {
         try {
             boolean ok = VideoPlaybackManager.registrarVisualizacion(id);
@@ -145,9 +149,13 @@ public class VideoResource {
     })
     @GET
     @Path("/{id}/stream")
+    @Produces("video/mp4")  
     public Response streamVideo(
         @PathParam("id") int id,
-        @HeaderParam("Range") String rangeHeader) {
+        @Parameter(in = ParameterIn.HEADER, name = "Range", 
+                    description = "Rango de bytes solicitado, p.ej. bytes=0-1023", required = false,
+                    example = "bytes=0-1023")
+    @HeaderParam("Range") String rangeHeader) {
 
             try {
                 StreamingOutput stream = VideoPlaybackManager.streamLocalVideo(id, rangeHeader);
@@ -209,13 +217,13 @@ public class VideoResource {
         examples  = @ExampleObject(
           name  = "FilterExample",
           value = "{\n" +
-                  "  \"titulo\": \"Java\",\n" +
-                  "  \"autor\": \"Ana\",\n" +
+                  "  \"titulo\": \"\",\n" +
+                  "  \"autor\": \"\",\n" +
                   "  \"fecha\": \"2025-05-01\",\n" +
-                  "  \"sortField\": \"titulo\",\n" +
+                  "  \"sortField\": \"fecha\",\n" +
                   "  \"sortOrder\": \"asc\",\n" +
                   "  \"page\": 1,\n" +
-                  "  \"pageSize\": 10\n" +
+                  "  \"pageSize\": 5\n" +
                   "}"
         )
       )

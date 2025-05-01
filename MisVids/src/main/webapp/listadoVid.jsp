@@ -70,10 +70,16 @@
         <li class="page-item">
           <button id="prevPage" class="page-link" type="button">‹ Anterior</button>
         </li>
-        <li class="page-item disabled">
-          <span class="page-link">
-            Página <span id="pageNumber">1</span> de <span id="pageCount">1</span>
-          </span>
+        <li class="page-item">
+          <input
+            id="pageInput"
+            type="number"
+            class="form-control text-center"
+            style="width:80px;"
+            min="1"
+            value="1"
+            aria-label="Número de página"
+          >
         </li>
         <li class="page-item">
           <button id="nextPage" class="page-link" type="button">Siguiente ›</button>
@@ -94,14 +100,17 @@
     let currentFilters = {};
     
     function updatePagination() {
-        document.getElementById('pageNumber').textContent = currentPage;
-        document.getElementById('pageCount').textContent = totalPages;
-        document.getElementById('firstPage').disabled = currentPage === 1;
-        document.getElementById('prevPage').disabled  = currentPage === 1;
-        document.getElementById('nextPage').disabled  = currentPage === totalPages;
-        document.getElementById('lastPage').disabled  = currentPage === totalPages;
+      const input = document.getElementById('pageInput');
+      input.value = currentPage;
+      input.min   = 1;
+      input.max   = totalPages;
+
+      document.getElementById('firstPage').disabled = currentPage === 1;
+      document.getElementById('prevPage').disabled  = currentPage === 1;
+      document.getElementById('nextPage').disabled  = currentPage === totalPages;
+      document.getElementById('lastPage').disabled  = currentPage === totalPages;
     }
-    
+
     // evento para botones
     document.getElementById('firstPage').addEventListener('click', () => fetchVideos(currentFilters, 1));
     document.getElementById('prevPage').addEventListener('click', e => {
@@ -188,6 +197,15 @@
         document.getElementById('prevPage').addEventListener('click',  () => fetchVideos(currentFilters, currentPage--));
         document.getElementById('nextPage').addEventListener('click',  () => fetchVideos(currentFilters, currentPage++));
         document.getElementById('lastPage').addEventListener('click',  () => fetchVideos(currentFilters, totalPages));
+        document.getElementById('pageInput').addEventListener('keydown', e => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            const target = parseInt(pageInput.value, 10);
+            if (target >= 1 && target <= totalPages && target !== currentPage) {
+              fetchVideos(currentFilters, target);
+            }
+          }
+        });
 
         // 3) Carga inicial
         fetchVideos({}, 1);

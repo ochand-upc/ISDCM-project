@@ -43,7 +43,7 @@
                             onStateChange: function(e) {
                                 if (e.data === YT.PlayerState.PLAYING && !reproduccionRegistrada) {
                                     reproduccionRegistrada = true;
-                                    fetch('/web-service/api/videos/${video.getId()}/reproducciones', {
+                                    fetch('/web-service/api/videos/${video.getId()}/views', {
                                         method: "PUT"
                                     });
                                 }
@@ -68,7 +68,7 @@
                     videoEl.addEventListener("play", function() {
                         if (!reproduccionRegistrada) {
                             reproduccionRegistrada = true;
-                            fetch('/web-service/api/videos/${video.getId()}/reproducciones', {
+                            fetch('/web-service/api/videos/${video.getId()}/views', {
                                 method: "PUT"
                             });
                         }

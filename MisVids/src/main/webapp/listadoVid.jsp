@@ -54,7 +54,7 @@
                 <th data-field="autor" class="sortable text-start">Autor <span class="sort-indicator"></span></th>
                 <th data-field="fecha" class="sortable text-center">Fecha <span class="sort-indicator"></span></th>
                 <th data-field="duracion" class="sortable text-center">Duración <span class="sort-indicator"></span></th>
-                <th data-field="reproducciones" class="sortable text-center">Vistas <span class="sort-indicator"></span></th>
+                <th data-field="vistas" class="sortable text-center">Vistas <span class="sort-indicator"></span></th>
                 <th data-field="descripcion text-start">Descripción</th>
                 <th data-field="mimeType text-start" class="sortable">Formato <span class="sort-indicator"></span></th>
                 <th data-field="tamano" class="sortable text-center" >Tamaño <span class="sort-indicator"></span></th>

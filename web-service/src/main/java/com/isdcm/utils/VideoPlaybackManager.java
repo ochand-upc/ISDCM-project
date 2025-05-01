@@ -20,10 +20,10 @@ public class VideoPlaybackManager {
         return instance;
     }
 
-    /** Incrementa en BD el contador de reproducciones. */
-    public static boolean registrarReproduccion(int videoId) {
+    /** Incrementa en BD el contador de vistas. */
+    public static boolean registrarVisualizacion(int videoId) {
         try {
-            return VideoDAO.incrementarReproducciones(videoId);
+            return VideoDAO.incrementarVisualizacion(videoId);
         } catch (Exception e) {
             e.printStackTrace();
             return false;

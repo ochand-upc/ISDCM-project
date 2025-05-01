@@ -23,15 +23,15 @@ import java.util.List;
 public class VideoResource {
 
     /**
-     * Incrementa en 1 el contador de reproducciones del video con {id}.
+     * Incrementa en 1 el contador de visualizaciones del video con {id}.
      * Método HTTP: PUT
      * URL: /{context}/api/videos/{id}/reproducir
      */
     @PUT
-    @Path("/{id}/reproducciones")
-    public Response registrarReproducciones(@PathParam("id") int id) {
+    @Path("/{id}/views")
+    public Response registrarVistas(@PathParam("id") int id) {
         try {
-            boolean ok = VideoPlaybackManager.registrarReproduccion(id);
+            boolean ok = VideoPlaybackManager.registrarVisualizacion(id);
             if (ok) {
                 // Devolvemos un JSON sencillo con estado
                 return Response

@@ -43,8 +43,8 @@ public class VideoDAO {
         return null;
     }
     
-    // Método para incrementar reproducciones de un video por su ID
-    public static boolean incrementarReproducciones(int id) throws SQLException, IOException {
+    // Método para incrementar visualizacion de un video por su ID
+    public static boolean incrementarVisualizacion(int id) throws SQLException, IOException {
         String sql = "UPDATE VIDEOS SET REPRODUCCIONES = REPRODUCCIONES + 1 WHERE ID = ?";
         return DatabaseExecutor.ejecutarUpdate(sql, id);
     }

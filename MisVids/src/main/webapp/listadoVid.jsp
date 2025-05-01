@@ -47,17 +47,23 @@
 
     <!-- Tabla de resultados -->
     <div>
-      <table id="videosTable">
-        <thead>
-          <tr>
-            <th>Título</th><th>Autor</th><th>Fecha</th><th>Duración</th>
-            <th>Reproducciones</th><th>Descripción</th><th>Formato</th>
-            <th>Tamaño</th><th>Enlace</th>
-          </tr>
-        </thead>
-        <tbody>
-          <!-- Se inyectan filas aquí -->
-        </tbody>
+        <table id="videosTable">
+            <thead>
+              <tr>
+                <th data-field="titulo" class="sortable">Título <span class="sort-indicator"></span></th>
+                <th data-field="autor"  class="sortable">Autor  <span class="sort-indicator"></span></th>
+                <th data-field="fecha"  class="sortable">Fecha  <span class="sort-indicator"></span></th>
+                <th data-field="duracion"       class="sortable">Duración        <span class="sort-indicator"></span></th>
+                <th data-field="reproducciones" class="sortable">Reproducciones  <span class="sort-indicator"></span></th>
+                <th data-field="descripcion">Descripción</th>
+                <th data-field="mimeType">Formato</th>
+                <th data-field="tamano">Tamaño</th>
+                <th>Ver Video</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Se inyectan filas aquí -->
+            </tbody>
       </table>
     </div>
     
@@ -96,8 +102,11 @@
   <script>
 
     const PAGE_SIZE = 5;
-    let currentPage = 1, totalPages = 1;
-    let currentFilters = {};
+     let currentPage      = 1,
+         totalPages       = 1,
+         currentFilters   = {},
+         currentSortField = 'fecha',     // inicial por defecto
+         currentSortOrder = 'desc';      // o 'asc'
     
     function updatePagination() {
       const input = document.getElementById('pageInput');
@@ -154,25 +163,53 @@
     }
 
     async function fetchVideos(filters, page = 1) {
-      currentFilters = filters;
-      currentPage = page;
-      const payload = {
-        ...filters,
-        page: page,
-        pageSize: PAGE_SIZE
-      };
-      const res = await fetch('/web-service/api/videos/search', {
-        method: 'POST',
-        headers: { 'Content-Type':'application/json','Accept':'application/json' },
-        body: JSON.stringify(payload)
-      });
-      if (!res.ok) throw new Error(res.statusText);
+        currentFilters = filters;
+        currentPage    = page;
 
-      const { total, items } = await res.json();
-      totalPages = Math.ceil(total / PAGE_SIZE);
-      renderTable(items);
-      updatePagination();
+        const payload = {
+          ...filters,
+          page,
+          pageSize: PAGE_SIZE,
+          sortField: currentSortField,
+          sortOrder: currentSortOrder
+        };
+        const res = await fetch('/web-service/api/videos/search', {
+          method: 'POST',
+          headers:{ 'Content-Type':'application/json','Accept':'application/json' },
+          body: JSON.stringify(payload)
+        });
+        if (!res.ok) throw new Error(res.statusText);
+
+        const { total, items } = await res.json();
+        totalPages = Math.ceil(total / PAGE_SIZE);
+        renderTable(items);
+        updatePagination();
     }
+    
+    // después de definir fetchVideos…
+    function bindSortControls() {
+      document
+        .querySelectorAll('#videosTable th.sortable')
+        .forEach(th => {
+          th.style.cursor = 'pointer';
+          th.addEventListener('click', () => {
+            const f = th.dataset.field;
+            if (currentSortField === f) {
+              currentSortOrder = currentSortOrder === 'asc' ? 'desc' : 'asc';
+            } else {
+              currentSortField = f;
+              currentSortOrder = 'asc';
+            }
+            document.querySelectorAll('.sort-indicator')
+                    .forEach(span => span.textContent = '');
+            const arrow = currentSortOrder === 'asc' ? '↑' : '↓';
+            th.querySelector('.sort-indicator').textContent = arrow;
+
+            fetchVideos(currentFilters, 1);
+          });
+        });
+    }
+    
 
     document.addEventListener('DOMContentLoaded', () => {
         // 1) Bind filtros
@@ -206,8 +243,11 @@
             }
           }
         });
+        
+        // 3) Bind ordenación:
+        bindSortControls()
 
-        // 3) Carga inicial
+        // 4) Carga inicial
         fetchVideos({}, 1);
       });
   </script>

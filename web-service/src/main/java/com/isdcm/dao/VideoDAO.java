@@ -12,6 +12,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 public class VideoDAO {
 
@@ -52,38 +53,50 @@ public class VideoDAO {
     /**
      * Busca vídeos con filtros y paginación.
      */
-    public static List<Video> buscarVideos(String titulo, String autor, String fecha, int page, int pageSize)
-            throws SQLException, IOException {
+    public static List<Video> buscarVideos(String titulo, String autor, String fecha, String sortField, 
+            String sortOrder, int page, int pageSize
+    ) throws SQLException, IOException {
+
+        // Lista blanca de columnas ordenables
+        Set<String> allowedFields = Set.of(
+          "titulo","autor","fecha","duracion","reproducciones"
+        );
+        if (!allowedFields.contains(sortField)) {
+            sortField = "fecha";
+        }
+        sortOrder = "asc".equalsIgnoreCase(sortOrder) ? "asc" : "desc";
 
         StringBuilder sql = new StringBuilder("SELECT * FROM VIDEOS");
         List<Object> params = new ArrayList<>();
         boolean hasWhere = false;
 
         if (titulo != null && !titulo.isEmpty()) {
-            sql.append(hasWhere ? " AND" : " WHERE");
-            sql.append(" LOWER(TITULO) LIKE ?");
+            sql.append(hasWhere ? " AND" : " WHERE")
+               .append(" LOWER(TITULO) LIKE ?");
             params.add("%" + titulo.toLowerCase() + "%");
             hasWhere = true;
         }
         if (autor != null && !autor.isEmpty()) {
-            sql.append(hasWhere ? " AND" : " WHERE");
-            sql.append(" LOWER(AUTOR) LIKE ?");
+            sql.append(hasWhere ? " AND" : " WHERE")
+               .append(" LOWER(AUTOR) LIKE ?");
             params.add("%" + autor.toLowerCase() + "%");
             hasWhere = true;
         }
         if (fecha != null && !fecha.isEmpty()) {
-            sql.append(hasWhere ? " AND" : " WHERE");
-            sql.append(" FECHA LIKE ?");
+            sql.append(hasWhere ? " AND" : " WHERE")
+               .append(" FECHA LIKE ?");
             params.add(fecha + "%");
+            hasWhere = true;
         }
 
-        // paginación
-        sql.append(" ORDER BY FECHA DESC")
+        // Usa los parámetros de orden y paginación
+        sql.append(" ORDER BY ")
+           .append(sortField).append(" ").append(sortOrder)
            .append(" OFFSET ? ROWS FETCH NEXT ? ROWS ONLY");
         params.add((page - 1) * pageSize);
         params.add(pageSize);
 
-        try (DatabaseExecutor.ResultSetWrapper wrap =
+        try (ResultSetWrapper wrap =
                  DatabaseExecutor.ejecutarQuery(sql.toString(), params.toArray());
              ResultSet rs = wrap.getResultSet()) {
 

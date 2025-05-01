@@ -122,6 +122,7 @@ public class VideoResource {
     @POST
     @Path("/search")
     @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
     public Response buscarVideos(VideoFilter filter) {
         try {
             int total = VideoDAO.countVideos(
@@ -133,6 +134,8 @@ public class VideoResource {
                 filter.getTitulo(),
                 filter.getAutor(),
                 filter.getFecha(),
+                filter.getSortField(),
+                filter.getSortOrder(),
                 filter.getPage(),
                 filter.getPageSize()
             );

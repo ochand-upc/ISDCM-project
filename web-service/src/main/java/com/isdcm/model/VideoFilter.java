@@ -10,6 +10,9 @@ public class VideoFilter {
     private String fecha;    // acepta "YYYY", "YYYY-MM" o "YYYY-MM-DD"
     private Integer page  = 1;
     private Integer pageSize = 20;
+    private String sortField = "fecha";
+    private String sortOrder = "desc";
+
 
     public VideoFilter() {}
 
@@ -51,5 +54,21 @@ public class VideoFilter {
     
     public void setPageSize(Integer s) {
         this.pageSize = s; 
+    }
+    
+    public String getSortField() {
+        return sortField;
+    }
+    
+    public void setSortField(String sortField) {
+        this.sortField = sortField;
+    }
+    
+    public String getSortOrder() {
+        return sortOrder;
+    }
+    
+    public void setSortOrder(String sortOrder) {
+        this.sortOrder = sortOrder;
     }
 }

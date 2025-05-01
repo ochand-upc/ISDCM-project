@@ -143,8 +143,15 @@ td {
   -moz-appearance: textfield;
 }
 
-/* focus outline suave en rojo marca Netflix */
-.pagination-netflix input#pageInput:focus {
-  outline: none;
-  box-shadow: 0 0 0 .2rem rgba(229, 9, 20, 0.25);
+
+
+/* Marca todos los headers “ordenables” */
+th.sortable {
+  white-space: nowrap;
+  cursor: pointer;
+  position: relative;
+}
+th.sortable .arrow {
+  margin-left: 0.25em;
+  font-size: 0.85em;
 }

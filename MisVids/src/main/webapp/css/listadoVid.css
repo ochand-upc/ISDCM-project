@@ -147,11 +147,17 @@ td {
 
 /* Marca todos los headers “ordenables” */
 th.sortable {
-  white-space: nowrap;
   cursor: pointer;
   position: relative;
 }
 th.sortable .arrow {
   margin-left: 0.25em;
   font-size: 0.85em;
+}
+
+.cell-truncate {
+  max-width: 160px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }

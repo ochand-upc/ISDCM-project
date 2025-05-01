@@ -167,8 +167,8 @@
             
             const row = document.createElement('tr');
             row.innerHTML = 
-              "<td class='text-start'>"+v.titulo+"</td>"+
-              "<td class='text-start'>"+v.autor+"</td>"+
+              "<td class='text-start cell-truncate'>"+v.titulo+"</td>"+
+              "<td class='text-start cell-truncate'>"+v.autor+"</td>"+
               "<td class='text-center'>"+formatDate(v.fecha)+"</td>"+
               "<td class='text-center'>"+formatDuration(v.duracion)+"</td>"+
               "<td class='text-center'>"+v.reproducciones+"</td>"+

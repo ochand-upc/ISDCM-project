@@ -73,16 +73,18 @@
                             });
                         }
                     });
-                });
             </script>
         <% } %>
         </div>
 
         <div class="video-info mt-3">
             <p><strong>Autor:</strong> <%= video.getAutor() %></p>
-            <p><strong>Fecha:</strong> <%= video.getFecha() %></p>
-            <p><strong>Descripcióón:</strong> <%= video.getDescripcion() %></p>
-            <p><strong>Reproducciones:</strong> <%= video.getReproducciones() %></p>
+            <p><strong>Fecha:</strong>
+              <span class="date" data-iso="<%= video.getFecha() %>">
+              </span>
+            </p>            
+            <p><strong>Descripción:</strong> <%= video.getDescripcion() %></p>
+            <p><strong>Vistas:</strong> <%= video.getReproducciones() %></p>
         </div>
 
         <a href="listadoVid.jsp" class="btn btn-danger mt-2">Volver al listado</a>
@@ -104,13 +106,30 @@
             </div>
           </div>
           <script>
-                document.addEventListener('DOMContentLoaded', function() {
-                    var toast = new bootstrap.Toast(document.getElementById('errorToast'));
-                    toast.show();
-            });
+            document.addEventListener('DOMContentLoaded', function() {
+                var toast = new bootstrap.Toast(document.getElementById('errorToast'));
+                toast.show();  
+            });       
           </script>
         <% } %>
     </div>
+    
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            document.querySelectorAll('.date').forEach(span => {
+                const iso = span.dataset.iso;
+                span.textContent = formatDate(iso);
+            });
+        });
+        
+        function formatDate(iso) {
+            const d = new Date(iso.replace(' ', 'T'));
+            const opciones = { day: 'numeric', month: 'long', year: 'numeric' };
+            return d.toLocaleDateString('es-ES', opciones);
+        } 
+    
+    
+    </script>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
             integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"

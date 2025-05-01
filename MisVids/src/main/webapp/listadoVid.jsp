@@ -50,15 +50,15 @@
         <table id="videosTable">
             <thead>
               <tr>
-                <th data-field="titulo" class="sortable">Título <span class="sort-indicator"></span></th>
-                <th data-field="autor"  class="sortable">Autor  <span class="sort-indicator"></span></th>
-                <th data-field="fecha"  class="sortable">Fecha  <span class="sort-indicator"></span></th>
-                <th data-field="duracion"       class="sortable">Duración        <span class="sort-indicator"></span></th>
-                <th data-field="reproducciones" class="sortable">Reproducciones  <span class="sort-indicator"></span></th>
-                <th data-field="descripcion">Descripción</th>
-                <th data-field="mimeType">Formato</th>
-                <th data-field="tamano">Tamaño</th>
-                <th>Ver Video</th>
+                <th data-field="titulo" class="sortable text-start">Título <span class="sort-indicator"></span></th>
+                <th data-field="autor" class="sortable text-start">Autor <span class="sort-indicator"></span></th>
+                <th data-field="fecha" class="sortable text-center">Fecha <span class="sort-indicator"></span></th>
+                <th data-field="duracion" class="sortable text-center">Duración <span class="sort-indicator"></span></th>
+                <th data-field="reproducciones" class="sortable text-center">Vistas <span class="sort-indicator"></span></th>
+                <th data-field="descripcion text-start">Descripción</th>
+                <th data-field="mimeType text-start" class="sortable">Formato <span class="sort-indicator"></span></th>
+                <th data-field="tamano" class="sortable text-center" >Tamaño <span class="sort-indicator"></span></th>
+                <th class="text-center">Enlace</th>
               </tr>
             </thead>
             <tbody>
@@ -134,6 +134,38 @@
     });    document.getElementById('lastPage').addEventListener ('click', () => fetchVideos(currentFilters, totalPages));
 
 
+    // 1) formatea "2025-01-02 13:45:00" a "2 de enero de 2025" (o "20 de marzo de 2025")
+    function formatDate(iso) {
+      const d = new Date(iso.replace(' ', 'T'));
+      const opciones = { day: 'numeric', month: 'long', year: 'numeric' };
+      return d.toLocaleDateString('es-ES', opciones);
+    }
+
+    // 2) formatea segundos (por ej. 3665) a "1h 1m 5s" o "37m 5s" si no hay horas
+    function formatDuration(totalSec) {
+      let s = Math.floor(totalSec);
+      const h = Math.floor(s / 3600);
+      s %= 3600;
+      const m = Math.floor(s / 60);
+      s = s % 60;
+
+      const partes = [];
+      if (h) partes.push(h+"h");
+      partes.push(m+"m");
+      partes.push(s+"s");
+      return partes.join(' ');
+    }
+
+    // formatea bytes a KB/MB/GB
+    function formatBytes(bytes) {
+      if (bytes == null) return '—';
+      const kb = 1024, mb = kb*1024, gb = mb*1024;
+      if (bytes >= gb) return (bytes/gb).toFixed(1) + ' GB';
+      if (bytes >= mb) return (bytes/mb).toFixed(1) + ' MB';
+      if (bytes >= kb) return (bytes/kb).toFixed(1) + ' KB';
+      return bytes + ' B';
+    }
+
     function renderTable(videos) {
         const tbody = document.querySelector('#videosTable tbody');
         tbody.innerHTML = '';
@@ -142,23 +174,28 @@
           return;
         }
         for (const v of videos) {
-          const row = document.createElement('tr');
-          row.innerHTML = 
-            "<td>"+v.titulo+"</td>"+
-            "<td>"+v.autor+"</td>"+
-            "<td>"+v.fecha+"</td>"+
-            "<td>"+v.duracion+"</td>"+
-            "<td>"+v.reproducciones+"</td>"+
-            "<td>"+v.descripcion+"</td>"+
-            "<td>"+v.mimeType+"</td>"+
-            "<td>"+v.tamano+"</td>"+
-            "<td>"+
-              "<a href="+"servletVerVideo?id="+v.id+" "+
-                 "class="+"'link'>"+
-                 "Ver video"+
-              "</a>"+
-            "</td>";
-          tbody.appendChild(row);
+            const fullDesc = v.descripcion || '';
+            const shortDesc = fullDesc.length > 100
+              ? fullDesc.slice(0,100) + '…'
+              : fullDesc;
+            
+            const row = document.createElement('tr');
+            row.innerHTML = 
+              "<td class='text-start'>"+v.titulo+"</td>"+
+              "<td class='text-start'>"+v.autor+"</td>"+
+              "<td class='text-center'>"+formatDate(v.fecha)+"</td>"+
+              "<td class='text-center'>"+formatDuration(v.duracion)+"</td>"+
+              "<td class='text-center'>"+v.reproducciones+"</td>"+
+              "<td title='"+fullDesc+"' class='text-start'>"+shortDesc+"</td>"+
+              "<td class='text-start'>"+v.mimeType+"</td>"+
+              "<td class='text-center'>"+formatBytes(v.tamano)+"</td>"+
+              "<td class='text-center'>"+
+                "<a href="+"servletVerVideo?id="+v.id+" "+
+                   "class="+"'link'>"+
+                   "Ver video"+
+                "</a>"+
+              "</td>";
+            tbody.appendChild(row);
         }
     }
 

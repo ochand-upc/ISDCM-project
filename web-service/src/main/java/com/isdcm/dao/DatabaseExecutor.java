@@ -74,7 +74,7 @@ public class DatabaseExecutor {
         public void close() throws SQLException {
             rs.close();
             ps.close();
-            conn.close();
+            //conn.close();
         }
     }
 }

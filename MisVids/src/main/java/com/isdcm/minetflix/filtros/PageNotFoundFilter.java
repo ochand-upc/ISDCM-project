@@ -27,8 +27,7 @@ public class PageNotFoundFilter implements Filter {
         "logout.jsp",
         "notFoundPage.jsp",
         "verVideo.jsp",
-        "servletVerVideo",
-        "servletStreamVideo"
+        "servletRest"
     );
 
     @Override

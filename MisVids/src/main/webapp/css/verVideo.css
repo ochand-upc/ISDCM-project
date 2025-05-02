@@ -71,3 +71,13 @@ h2 {
     border-radius: 8px;
     box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.3);
 }
+
+.error-message {
+    color: #ff4d4d;
+    margin-top: 10px;
+}
+
+.success-message {
+    color: #28a745;
+    margin-top: 10px;
+}

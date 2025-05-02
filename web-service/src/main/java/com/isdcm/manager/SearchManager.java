@@ -1,4 +1,4 @@
-package com.isdcm.utils;
+package com.isdcm.manager;
 
 import com.isdcm.dao.VideoDAO;
 import com.isdcm.model.PaginatedResponse;

@@ -97,6 +97,21 @@
     </nav>
 
     <a href="home.jsp" class="back-link">Volver al menú principal</a>
+    
+    
+    <div class="position-fixed top-0 end-0 p-3" style="z-index: 9999;">
+        <div id="customToast" class="toast align-items-center text-bg-danger border-0"
+           role="alert" aria-live="assertive" aria-atomic="true"
+           data-bs-autohide="false">
+              <div class="d-flex">
+                  <div class="toast-body">
+                      <!-- Mensaje dinámico -->
+                  </div>
+                  <button type="button" class="btn-close btn-close-white me-2 m-auto"
+                          data-bs-dismiss="toast" aria-label="Close"></button>
+              </div>
+        </div>            
+    </div>
   </div>
 
   <script>
@@ -167,8 +182,8 @@
             
             const row = document.createElement('tr');
             row.innerHTML = 
-              "<td class='text-start cell-truncate'>"+v.titulo+"</td>"+
-              "<td class='text-start cell-truncate'>"+v.autor+"</td>"+
+              "<td title='"+v.titulo+"' class='text-start cell-truncate'>"+v.titulo+"</td>"+
+              "<td title='"+v.autor+"' class='text-start cell-truncate'>"+v.autor+"</td>"+
               "<td class='text-center'>"+formatDate(v.fecha)+"</td>"+
               "<td class='text-center'>"+formatDuration(v.duracion)+"</td>"+
               "<td class='text-center'>"+v.reproducciones+"</td>"+
@@ -176,7 +191,7 @@
               "<td class='text-start'>"+v.mimeType+"</td>"+
               "<td class='text-center'>"+formatBytes(v.tamano)+"</td>"+
               "<td class='text-center'>"+
-                "<a href="+"servletVerVideo?id="+v.id+" "+
+                "<a href="+"servletRest?action=view&id="+v.id+" "+
                    "class="+"'link'>"+
                    "Ver video"+
                 "</a>"+
@@ -196,17 +211,22 @@
           sortField: currentSortField,
           sortOrder: currentSortOrder
         };
-        const res = await fetch('/web-service/api/videos/search', {
+        const res = await fetch('servletRest?action=search', {
           method: 'POST',
           headers:{ 'Content-Type':'application/json','Accept':'application/json' },
           body: JSON.stringify(payload)
         });
-        if (!res.ok) throw new Error(res.statusText);
-
-        const { total, items } = await res.json();
-        totalPages = Math.ceil(total / PAGE_SIZE);
-        renderTable(items);
-        updatePagination();
+        
+        if (res.ok) {
+            const { total, items } = await res.json();
+            totalPages = Math.ceil(total / PAGE_SIZE);
+            renderTable(items);
+            updatePagination();
+          } else {
+            const err = await res.json();
+            console.log("error: " + err.error);
+            showToast(err.error || 'Error desconocido');
+        }
     }
     
     // después de definir fetchVideos…
@@ -233,6 +253,24 @@
         });
     }
     
+    
+    // mostrar toast
+    function showToast(textContent, error=true){
+        const toastEl = document.getElementById("customToast");
+        const toastBody = toastEl.querySelector(".toast-body");
+        const toast = new bootstrap.Toast(toastEl);
+        
+        if(error){
+            toastEl.classList.remove("text-bg-success");
+            toastEl.classList.add("text-bg-danger");
+        }else{
+           toastEl.classList.add("text-bg-success");
+           toastEl.classList.remove("text-bg-danger"); 
+        }
+        toastBody.textContent = textContent;
+        // Mostrar el toast
+        toast.show();
+    }
 
     document.addEventListener('DOMContentLoaded', () => {
         // 1) Bind filtros
@@ -279,7 +317,16 @@
 
         // 4) Carga inicial
         fetchVideos({}, 1);
+        
+        // 5) Mostrar errores desde servlet
+        <% if (session.getAttribute("mensajeError") != null) { %>
+                showToast('<%= session.getAttribute("mensajeError") %>');
+                <% session.removeAttribute("mensajeError"); %>
+        <% } %>
       });
   </script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+      crossorigin="anonymous"></script>
 </body>
 </html>

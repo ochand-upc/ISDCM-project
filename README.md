@@ -1,19 +1,22 @@
 # 🎬 MiNetflix
 
 MiNetflix es una plataforma de gestión de videos desarrollada en **Java 17**, utilizando **GlassFish 6.5.2** y **NetBeans 17**.  
-Se implementa el patrón **Modelo-Vista-Controlador (MVC)**, con **DAO** para la gestión de la base de datos.
+Se implementan dos aplicaciones empaquetadas como WAR:
+
+- **Front-end (`MisVids-1.0.war`)**: Interfaz web MVC con páginas JSP, Servlets y lógica de presentación.  
+- **Servicio REST (`web-service-1.0.war`)**: API independiente para reproducción y gestión de videos.
 
 ---
 
 ## ✨ Features
 
-- 📌 **Registro de usuarios** con validaciones en el cliente y servidor.
-- 🔐 **Inicio de sesión** con verificación de credenciales.
-- 📂 **Registro de videos** asegurando consistencia de datos.
-- 📋 **Listado de videos** disponibles en la plataforma.
-- ▶️  **Reprudcción de videos** locales o de YouTube.
-- 🛡️ **Filtros de acceso** para proteger las páginas de usuarios autenticados.
-- 🛠️ **Gestión de base de datos** mediante una conexión centralizada y un ejecutor de consultas.
+- 📌 **Registro de usuarios** con validaciones en el cliente y servidor.  
+- 🔐 **Inicio de sesión** con verificación de credenciales.  
+- 📂 **Registro de videos** locales o enlaces embebidos de YouTube.  
+- 📋 **Listado de videos** con filtros, paginación y ordenación consumiendo endpoint REST.  
+- ▶️ **Reproducción de videos** a través de endpoints REST.  
+- 🛡️ **Control de acceso** protegido mediante HttpSession.  
+- 🛠️ **Gestión de base de datos** mediante conexión centralizada y ejecutor genérico.
 
 ---
 
@@ -44,50 +47,62 @@ Se implementa el patrón **Modelo-Vista-Controlador (MVC)**, con **DAO** para la
 
 ---
 
-## 🔗 Endpoints disponibles
-- `/registroVid` ➝ Registro de videos
-- `/login` ➝ Inicio de sesión
-- `/home` ➝ Página de inicio
-- `/listadoVid` ➝ Listado de videos
-- `/verVideo` ➝ Ver video
-- `/notFoundPage` ➝ Página de error 404
+## 🔗 Endpoints API REST
+
+| Método | Ruta                                | Descripción                                     |
+|--------|-------------------------------------|-------------------------------------------------|
+| GET    | `/api/videos/{id}`                  | Obtiene los datos de un video por ID.           |
+| PUT    | `/api/videos/{id}/views`            | Incrementa contador de reproducciones.          |
+| GET    | `/api/videos/{id}/stream`           | Streaming (range) de un video local.            |
+| POST   | `/api/videos/search`                | Búsqueda de videos con filtros JSON.            |
+
+### Swagger / OpenAPI
+
+- **UI interactiva**: `/web-service/swagger-ui/index.html`  
+- **Spec JSON**: `/web-service/api/openapi.json`
 
 ---
 
 ## 🗄️ Gestión de base de datos
-Se implementa una **clase de conexión centralizada** (`DatabaseConnection`) y un **ejecutor de consultas** (`DatabaseExecutor`), utilizados por los DAO para la interacción con la base de datos.
 
-📌 *En futuras versiones, se planea almacenar los archivos de video en la base de datos.*
+Se utiliza un **archivo de propiedades** (`DB.properties`) cargado vía `-Dconfig.path` en GlassFish, que contiene:
+
+```properties
+db.url=jdbc:derby://localhost:1527/mydb;create=true
+db.user=usuario_bd
+db.pass=password_bd
+videos.path=/ruta/absoluta/al/storage/videos
+api.base.url=http://localhost:8080/web-service/api
+```
+
+La aplicación front-end y el servlet proxy (`servletRest`) leen `api.base.url` para invocar a la API REST.
+
+---
+
+## ⚙️ Configuración de GlassFish
+
+En el archivo `glassfish/domains/domain1/config/domain.xml` de GlassFish, agrega la línea:
+
+```xml
+<java-config ...>
+    <jvm-options>-Dconfig.path=/ruta/a/DB.properties</jvm-options>
+</java-config>
+```
+
+Luego reinicia el servidor para cargar las propiedades.
 
 ---
 
 ## 🚀 Tecnologías utilizadas
-- **Java 17** ☕
-- **GlassFish 6.5.2** 🐟
-- **NetBeans 17** 🏗️
-- **Derby Database** 🗄️
 
-## ⚙️ Configuración de Variables de Entorno
-Para el funcionamiento correcto de la aplicación es necesario establecer una variable de entorno en la que se especifica la ruta absoluta del archivo de conexión a la base de datos. 
-1. Ubica el archivo de configuración domain.xml, localizado normalmente en glassfish/domains/domain1/config/
-2. Coloca el archivo DB.properties en la ruta deseada. Debe contener lo siguiente:
-> db.url=jdbc:derby://localhost:1527/BASEDEDATOS;create=true
-> 
-> db.user=usuario_bd
-> 
-> db.pass=password_bd
->
-> videos.path=/ruta/absoluta/en/tu/SO/a/la/ubicacion/
-3. Agrega la siguiente línea al archivo:
-> <java-config ...>
-> 
->     <jvm-options>-Dconfig.path=/ruta/absoluta/en/tu/SO/a/DB.properties</jvm-options>
-> 
-> <\/java-config> 
-4. Reinicia el servidor GlassFish
+- **Java 17** ☕  
+- **GlassFish 6.5.2** 🐟  
+- **NetBeans 17** 🏗️  
+- **Derby Database** 🗄️  
 
 ---
 
 ## 👥 Autores
-- **Carlos Rodríguez**
-- **Óliver Chan**
+
+- Carlos Rodríguez  
+- Óliver Chan

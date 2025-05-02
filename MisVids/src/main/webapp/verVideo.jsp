@@ -40,12 +40,20 @@
                         width: "800",
                         videoId: '<%= Utils.extraerYouTubeId(rutaVideo) %>',
                         events: {
-                            onStateChange: function(e) {
+                            onStateChange: async function(e) {
                                 if (e.data === YT.PlayerState.PLAYING && !reproduccionRegistrada) {
                                     reproduccionRegistrada = true;
-                                    fetch('/web-service/api/videos/${video.getId()}/views', {
-                                        method: "PUT"
-                                    });
+                                    try {
+                                        const res = await fetch(
+                                          'servletRest?action=views&id=<%= video.getId() %>', 
+                                          { method: "PUT" });
+                                        if (!res.ok) {
+                                          const err = await res.json().catch(()=>({ error: res.statusText }));
+                                          showToast(err.error || 'Error desconocido al registrar vista');
+                                        }
+                                    } catch (e) {
+                                      showToast('No se pudo conectar al servidor');
+                                    }
                                 }
                             }
                         }
@@ -57,7 +65,7 @@
             <% } else { %>
                 <div class="ratio ratio-16x9">
                     <video id="playerLocal" controls preload="metadata">
-                        <source src="<%= rutaVideo %>" type="<%= video.getMimeType() %>">
+                        <source src="servletRest?action=stream&id=<%= video.getId() %>" type="<%= video.getMimeType() %>">
                         Tu navegador no soporta videos.
                     </video>
                 </div>
@@ -65,12 +73,20 @@
                   document.addEventListener("DOMContentLoaded", function() {
                     var videoEl = document.getElementById("playerLocal");
                     var reproduccionRegistrada = false;
-                    videoEl.addEventListener("play", function() {
+                    videoEl.addEventListener("play", async function() {
                       if (!reproduccionRegistrada) {
                         reproduccionRegistrada = true;
-                            fetch('/web-service/api/videos/${video.getId()}/views', {
-                          method: "PUT"
-                        });
+                        try {
+                            const res = await fetch(
+                              'servletRest?action=views&id=<%= video.getId() %>', 
+                              { method: "PUT" });
+                            if (!res.ok) {
+                              const err = await res.json().catch(()=>({ error: res.statusText }));
+                              showToast(err.error || 'Error desconocido al registrar vista');
+                            }
+                        } catch (e) {
+                          showToast('No se pudo conectar al servidor');
+                        }
                       }
                     });
                   });
@@ -89,30 +105,20 @@
         </div>
 
         <a href="listadoVid.jsp" class="btn btn-danger mt-2">Volver al listado</a>
-
-        <% if (request.getAttribute("mensajeError")!=null || request.getAttribute("mensajeExito")!=null) { %>
-          <div class="position-fixed top-0 end-0 p-3" style="z-index:9999">
-            <div id="toastMsg"
-                 class="toast align-items-center text-bg-<%= request.getAttribute("mensajeError")!=null?"danger":"success" %> border-0"
-                 role="alert" aria-live="assertive" aria-atomic="true" data-bs-autohide="false">
-              <div class="d-flex">
-                <div class="toast-body">
-                  <%= request.getAttribute("mensajeError")!=null 
-                        ? request.getAttribute("mensajeError")
-                        : request.getAttribute("mensajeExito") %>
-                </div>
-                <button type="button" class="btn-close btn-close-white me-2 m-auto"
-                        data-bs-dismiss="toast" aria-label="Close"></button>
-              </div>
-            </div>
-          </div>
-          <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                var toast = new bootstrap.Toast(document.getElementById('errorToast'));
-                toast.show();  
-            });       
-          </script>
-        <% } %>
+        
+        <div class="position-fixed top-0 end-0 p-3" style="z-index: 9999;">
+            <div id="customToast" class="toast align-items-center text-bg-danger border-0"
+               role="alert" aria-live="assertive" aria-atomic="true"
+               data-bs-autohide="false">
+                  <div class="d-flex">
+                      <div class="toast-body">
+                          <!-- Mensaje dinámico -->
+                      </div>
+                      <button type="button" class="btn-close btn-close-white me-2 m-auto"
+                              data-bs-dismiss="toast" aria-label="Close"></button>
+                  </div>
+            </div>            
+        </div>
     </div>
     
     <script>
@@ -121,13 +127,36 @@
                 const iso = span.dataset.iso;
                 span.textContent = formatDate(iso);
             });
+            
+            //Mostrar errores desde servlet
+            <% if (request.getAttribute("mensajeError") != null) { %>
+                showToast("<%= request.getAttribute("mensajeError") %>");
+            <% } %>
         });
         
         function formatDate(iso) {
             const d = new Date(iso.replace(' ', 'T'));
             const opciones = { day: 'numeric', month: 'long', year: 'numeric' };
             return d.toLocaleDateString('es-ES', opciones);
-        } 
+        }
+        
+        // mostrar toast
+        function showToast(textContent, error=true){
+            const toastEl = document.getElementById("customToast");
+            const toastBody = toastEl.querySelector(".toast-body");
+            const toast = new bootstrap.Toast(toastEl);
+
+            if(error){
+                toastEl.classList.remove("text-bg-success");
+                toastEl.classList.add("text-bg-danger");
+            }else{
+               toastEl.classList.add("text-bg-success");
+               toastEl.classList.remove("text-bg-danger"); 
+            }
+            toastBody.textContent = textContent;
+            // Mostrar el toast
+            toast.show();
+        }
     
     
     </script>

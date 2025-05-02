@@ -1,37 +1,20 @@
 package com.isdcm.dao;
 
-import java.io.FileInputStream;
+import com.isdcm.utils.AppConfig;
 import java.io.IOException;
-import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.util.Properties;
 
 public class DBConnection {
-    
-    private static Connection conn;
-    
-    private static final String PROPERTIES_FILE = System.getProperty("config.path");
 
+    private static final String DB_URL = AppConfig.get("db.url");
+    private static final String DB_USER = AppConfig.get("db.user");
+    private static final String DB_PASS = AppConfig.get("db.pass");
     
     public static Connection obtenerConexion() throws SQLException, IOException {
-        if (conn == null || conn.isClosed()) {
-            Properties prop = new Properties();
-            
-            // Cargar las propiedades desde el archivo
-            try (InputStream input = new FileInputStream(PROPERTIES_FILE)) {
-                prop.load(input);
-            }
-            
-            String dbUrl = prop.getProperty("db.url");
-            String dbUser = prop.getProperty("db.user");
-            String dbPass = prop.getProperty("db.pass");
-            
-            
-            // Crear la conexión usando las propiedades
-            conn = DriverManager.getConnection(dbUrl, dbUser, dbPass);
-        }
-        return conn;
+        
+        // Crear la conexión usando las propiedades
+        return DriverManager.getConnection(DB_URL, DB_USER, DB_PASS);
     }
 }

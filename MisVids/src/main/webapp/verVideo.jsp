@@ -54,27 +54,28 @@
             </script>
             <script src="https://www.youtube.com/iframe_api"></script>
 
-        <% } else { %>
-            <div class="ratio ratio-16x9">
-                <video id="playerLocal" controls preload="metadata">
-                    <source src="<%= rutaVideo %>" type="<%= video.getMimeType() %>">
-                    Tu navegador no soporta videos.
-                </video>
-            </div>
-            <script>
-                document.addEventListener("DOMContentLoaded", function() {
+            <% } else { %>
+                <div class="ratio ratio-16x9">
+                    <video id="playerLocal" controls preload="metadata">
+                        <source src="<%= rutaVideo %>" type="<%= video.getMimeType() %>">
+                        Tu navegador no soporta videos.
+                    </video>
+                </div>
+                <script>
+                  document.addEventListener("DOMContentLoaded", function() {
                     var videoEl = document.getElementById("playerLocal");
                     var reproduccionRegistrada = false;
                     videoEl.addEventListener("play", function() {
-                        if (!reproduccionRegistrada) {
-                            reproduccionRegistrada = true;
+                      if (!reproduccionRegistrada) {
+                        reproduccionRegistrada = true;
                             fetch('/web-service/api/videos/${video.getId()}/views', {
-                                method: "PUT"
-                            });
-                        }
+                          method: "PUT"
+                        });
+                      }
                     });
-            </script>
-        <% } %>
+                  });
+                </script>
+            <% } %>
         </div>
 
         <div class="video-info mt-3">

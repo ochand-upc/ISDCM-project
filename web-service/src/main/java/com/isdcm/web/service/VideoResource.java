@@ -8,6 +8,7 @@ import com.isdcm.dao.VideoDAO;
 import com.isdcm.model.PaginatedResponse;
 import com.isdcm.model.Video;
 import com.isdcm.model.VideoFilter;
+import com.isdcm.utils.SearchManager;
 import com.isdcm.utils.VideoPlaybackManager;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -264,23 +265,8 @@ public class VideoResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response buscarVideos(VideoFilter filter) {
         try {
-            int total = VideoDAO.countVideos(
-                filter.getTitulo(),
-                filter.getAutor(),
-                filter.getFecha()
-            );
-            List<Video> items = VideoDAO.buscarVideos(
-                filter.getTitulo(),
-                filter.getAutor(),
-                filter.getFecha(),
-                filter.getSortField(),
-                filter.getSortOrder(),
-                filter.getPage(),
-                filter.getPageSize()
-            );
-            PaginatedResponse<Video> page = new PaginatedResponse<>(total, items);
-            GenericEntity<PaginatedResponse<Video>> entity =
-                new GenericEntity<>(page){};
+            GenericEntity<PaginatedResponse<Video>> entity = 
+                    SearchManager.getPaginatedResponse(filter);
             return Response.ok(entity).build();
         } catch(SQLException|IOException e) {
             e.printStackTrace();

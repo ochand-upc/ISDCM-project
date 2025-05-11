@@ -288,6 +288,17 @@ public class VideoResource {
                 )
         ),
         @ApiResponse(
+                responseCode = "404",
+                description = "Vídeo no encontrado",
+                content = @Content(
+                        mediaType = MediaType.APPLICATION_JSON,
+                        examples = @ExampleObject(
+                                name = "NotFoundExample",
+                                value = "{\"error\":\"Video no encontrado\",\"id\":5}"
+                        )
+                )
+        ),
+        @ApiResponse(
                 responseCode = "500",
                 description = "Error interno al buscar vídeo",
                 content = @Content(

@@ -81,3 +81,93 @@ table tr:hover {
 td {
     word-break: break-word;
 }
+
+/* Netflix‐style pagination */
+.pagination-netflix .page-item .page-link {
+  color: #e50914;
+  background-color: transparent;
+  border: 1px solid #444; /* gris oscuro */
+}
+.pagination-netflix .page-item .page-link:hover {
+  background-color: rgba(229,9,20,0.1);
+  color: #fff;
+}
+.pagination-netflix .page-item.active .page-link {
+  background-color: #e50914;
+  border-color: #e50914;
+  color: #fff;
+}
+.pagination-netflix .page-item.disabled .page-link {
+  color: #666;
+  border-color: #333;
+}
+
+/* Botón rojo “Netflix” */
+.btn-netflix {
+  background-color: #e50914 !important;
+  border-color:     #e50914 !important;
+  color:            #fff     !important;
+}
+.btn-netflix:hover {
+  background-color: #b20710 !important;
+  border-color:     #b20710 !important;
+}
+
+.pagination-netflix input#pageInput {
+  width: 60px;
+  text-align: center;
+  background-color: #1f1f1f;
+  color: white;
+  /*color: #e50914;*/
+  border: 1px solid #444;
+  border-radius: 0;
+  height: calc(1.5em + .75rem + 2px);
+  box-shadow: none;
+}
+.pagination-netflix input#pageInput:focus {
+  outline: none;
+  /*border-color: #e50914;*/
+  /*color: #e50914 !important; */
+  box-shadow: 0 0 0 .2rem rgba(229,9,20,0.25);
+}
+
+/* quita spin buttons en WebKit */
+.pagination-netflix input#pageInput::-webkit-outer-spin-button,
+.pagination-netflix input#pageInput::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* quita spin buttons en Firefox */
+.pagination-netflix input#pageInput[type=number] {
+  -moz-appearance: textfield;
+}
+
+
+
+/* Marca todos los headers “ordenables” */
+th.sortable {
+  cursor: pointer;
+  position: relative;
+}
+th.sortable .arrow {
+  margin-left: 0.25em;
+  font-size: 0.85em;
+}
+
+.cell-truncate {
+  max-width: 160px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.error-message {
+    color: #ff4d4d;
+    margin-top: 10px;
+}
+
+.success-message {
+    color: #28a745;
+    margin-top: 10px;
+}

@@ -1,0 +1,92 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 
+                             http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.isdcm</groupId>
+  <artifactId>web-service</artifactId>
+  <version>1.0</version>
+  <packaging>war</packaging>
+  <name>web-service-1.0</name>
+
+  <properties>
+    <!-- Compilación en Java 11 -->
+    <maven.compiler.source>11</maven.compiler.source>
+    <maven.compiler.target>11</maven.compiler.target>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <jakartaee.version>10.0.0</jakartaee.version>
+  </properties>
+
+  <dependencies>
+    <!-- API completa Jakarta EE (GlassFish la provee en runtime) -->
+    <dependency>
+      <groupId>jakarta.platform</groupId>
+      <artifactId>jakarta.jakartaee-api</artifactId>
+      <version>${jakartaee.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <!-- JAX-RS API (por si GlassFish no la incluye por defecto) -->
+    <dependency>
+      <groupId>jakarta.ws.rs</groupId>
+      <artifactId>jakarta.ws.rs-api</artifactId>
+      <version>3.1.0</version>
+      <scope>provided</scope>
+    </dependency>
+    <!-- Biblioteca para metadatos de vídeo -->
+    <dependency>
+      <groupId>org.jcodec</groupId>
+      <artifactId>jcodec</artifactId>
+      <version>0.2.5</version>
+    </dependency>
+    
+    <!-- API Jakarta EE 10 (GlassFish ya la provee) -->
+    <dependency>
+      <groupId>jakarta.platform</groupId>
+      <artifactId>jakarta.jakartaee-api</artifactId>
+      <version>${jakartaee.version}</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <!-- Swagger para JAX-RS con namespace Jakarta -->
+    <dependency>
+      <groupId>io.swagger.core.v3</groupId>
+      <artifactId>swagger-jaxrs2-jakarta</artifactId>
+      <version>2.2.30</version>
+    </dependency>
+    <dependency>
+      <groupId>io.swagger.core.v3</groupId>
+      <artifactId>swagger-integration-jakarta</artifactId>
+      <version>2.2.30</version>
+    </dependency>
+    <dependency>
+      <groupId>io.swagger.core.v3</groupId>
+      <artifactId>swagger-annotations-jakarta</artifactId>
+      <version>2.2.30</version>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <!-- Usamos el compilador de Maven para Java 11 -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.10.1</version>
+        <configuration>
+          <source>${maven.compiler.source}</source>
+          <target>${maven.compiler.target}</target>
+        </configuration>
+      </plugin>
+
+      <!-- Plugin para generar el WAR -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-war-plugin</artifactId>
+        <version>3.3.2</version>
+        <configuration>
+          <failOnMissingWebXml>false</failOnMissingWebXml>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+</project>

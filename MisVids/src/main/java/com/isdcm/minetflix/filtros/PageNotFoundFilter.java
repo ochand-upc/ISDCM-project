@@ -22,14 +22,12 @@ public class PageNotFoundFilter implements Filter {
         "registroVid.jsp",
         "servletRegistroVid",
         "listadoVid.jsp",
-        "servletListadoVid",
         "login.jsp",
         "registroUsu.jsp",
         "logout.jsp",
         "notFoundPage.jsp",
         "verVideo.jsp",
-        "servletVerVideo",
-        "servletStreamVideo"
+        "servletRest"
     );
 
     @Override

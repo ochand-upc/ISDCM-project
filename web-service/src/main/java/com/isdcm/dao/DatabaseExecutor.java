@@ -3,7 +3,7 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
 
-package com.isdcm.minetflix.dao;
+package com.isdcm.dao;
 
 import java.io.IOException;
 import java.sql.Connection;
@@ -52,7 +52,7 @@ public class DatabaseExecutor {
         return new ResultSetWrapper(rs, ps, conn);
     }
     
-    /**
+     /**
      * Wrapper que cierra el ResultSet, su PreparedStatement y la Connection al cerrar().
      */
     public static class ResultSetWrapper implements AutoCloseable {
@@ -74,7 +74,7 @@ public class DatabaseExecutor {
         public void close() throws SQLException {
             rs.close();
             ps.close();
-            conn.close();
+            //conn.close();
         }
     }
 }

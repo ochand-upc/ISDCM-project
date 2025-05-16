@@ -18,7 +18,10 @@ import org.jcodec.containers.mp4.boxes.MovieHeaderBox;
 import org.jcodec.containers.mp4.boxes.NodeBox;
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.util.Arrays;
 import java.util.Properties;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
 
 public class Utils {
     
@@ -105,5 +108,11 @@ public class Utils {
     
     public static String getVideoStoragePath() {
         return videoStoragePath;
+    }
+    
+    // Obtener secretKey
+    public static SecretKey getSecretKey() {
+        byte[] keyBytes = AppConfig.get("encryption.key").getBytes(StandardCharsets.UTF_8);
+        return new SecretKeySpec(Arrays.copyOf(keyBytes, 16), "AES");
     }
 }

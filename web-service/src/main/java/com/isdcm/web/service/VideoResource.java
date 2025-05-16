@@ -24,7 +24,9 @@ import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.GenericEntity;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response.Status;
 import jakarta.ws.rs.core.StreamingOutput;
+import java.io.File;
 import java.io.IOException;
 import java.sql.SQLException;
 
@@ -157,48 +159,41 @@ public class VideoResource {
             @HeaderParam("Range") String rangeHeader) {
 
         try {
-            StreamingOutput stream = VideoPlaybackManager.streamLocalVideo(id, rangeHeader);
-            String mime = VideoPlaybackManager.detectMimeType(id);
-            long length = VideoPlaybackManager.getFileLength(id);
-
-            long from = 0;
-            long to = length - 1;
-            boolean partial = false;
-
-            if (rangeHeader != null && rangeHeader.startsWith("bytes=")) {
-                partial = true;
-                String payload = rangeHeader.substring(6);      // "0-" o "123-456"
-                String[] parts = payload.split("-", 2);         // máximo 2 trozos
-                from = Long.parseLong(parts[0]);
-                if (parts.length == 2 && !parts[1].isEmpty()) {
-                    to = Long.parseLong(parts[1]);
-                }
-                if (to >= length) {
-                    to = length - 1;
-                }
+            // 1) Recuperar metadata del vídeo
+            Video v = VideoDAO.obtenerVideoPorId(id);
+            if (v == null || !"LOCAL".equals(v.getTipoFuente())) {
+                return Response.status(Status.NOT_FOUND)
+                        .entity("Vídeo no válido o no encontrado")
+                        .build();
             }
 
-            long chunk = to - from + 1;
+            // 2) Generar el stream desencriptado (on-the-fly)
+            StreamingOutput stream = VideoPlaybackManager.streamLocalVideo(id, rangeHeader);
 
-            Response.ResponseBuilder rb = partial
-                    ? Response.status(Response.Status.PARTIAL_CONTENT)
-                    : Response.ok();
+            // 3) Construir la respuesta con headers
+            Response.ResponseBuilder rb = Response.ok(stream)
+                    .type(v.getMimeType())
+                    .header("Accept-Ranges", "bytes");
 
-            return rb
-                    .entity(stream)
-                    .header("Accept-Ranges", "bytes")
-                    .header("Content-Type", mime)
-                    .header("Content-Length", chunk)
-                    .header("Content-Range", String.format("bytes %d-%d/%d", from, to, length))
+            // Si vino Range, devolvemos 206 Partial Content
+            if (rangeHeader != null) {
+                rb.status(Status.PARTIAL_CONTENT);
+            }
+
+            return rb.build();
+
+        } catch (IllegalArgumentException iae) {
+            // Bad request para parámetros inválidos
+            return Response.status(Status.BAD_REQUEST)
+                    .entity(iae.getMessage())
                     .build();
 
-        } catch (IllegalArgumentException ia) {
-            return Response.status(Response.Status.NOT_FOUND)
-                    .entity("{\"error\":\"" + ia.getMessage() + "\"}")
-                    .build();
         } catch (Exception e) {
+            // Error inesperado durante I/O o desencriptado
             e.printStackTrace();
-            return Response.serverError().build();
+            return Response.status(Status.INTERNAL_SERVER_ERROR)
+                    .entity("Error al procesar el streaming: " + e.getMessage())
+                    .build();
         }
     }
 

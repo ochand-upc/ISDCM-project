@@ -73,6 +73,7 @@ db.user=usuario_bd
 db.pass=password_bd
 videos.path=/ruta/absoluta/al/storage/videos
 api.base.url=http://localhost:8080/web-service/api
+encryption.key=encryption_key_value_here
 ```
 
 La aplicación front-end y el servlet proxy (`servletRest`) leen `api.base.url` para invocar a la API REST.

@@ -13,17 +13,21 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.List;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.MultipartConfig;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import jakarta.servlet.http.Part;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 @WebServlet(name = "servletRest", urlPatterns = {"/servletRest"})
+@MultipartConfig
 public class servletRest extends HttpServlet {
 
     private static final String API_BASE = AppConfig.get("web-service.url") + "/videos";
@@ -33,14 +37,16 @@ public class servletRest extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
-        
+
         HttpSession sesion = req.getSession(false);
         if (sesion == null || sesion.getAttribute("usuarioLogueado") == null) {
             resp.sendRedirect("login.jsp");
             return;
         }
-        
+
+        String id = req.getParameter("id");
         String action = req.getParameter("action");
+
         switch (action) {
             case "stream":
                 proxyStream(req, resp);
@@ -48,39 +54,115 @@ public class servletRest extends HttpServlet {
             case "view":
                 pageView(req, resp);
                 break;
+            case "exportMetadataEnc":
+                resp.setHeader("Content-Disposition",
+                        "attachment; filename=\"video" + id + ".metadata.xml.enc\"");
+                proxyTo(API_BASE + "/" + id + "/metadata/encrypted", resp);
+                break;
+
             default:
                 resp.sendError(400, "Acción GET desconocida");
         }
     }
 
-    @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp)
-            throws ServletException, IOException {
-        
-        HttpSession sesion = req.getSession(false);
-        if (sesion == null || sesion.getAttribute("usuarioLogueado") == null) {
-            resp.sendRedirect("login.jsp");
-            return;
-        }
-        
-        String action = req.getParameter("action");
-        if ("search".equals(action)) {
-            buscarVideos(req, resp);
-        } else {
-            resp.sendError(404);
+@Override
+protected void doPost(HttpServletRequest req, HttpServletResponse resp)
+        throws ServletException, IOException {
+    // 1) LEER action (getParameter o, en multipart, como Part)
+    String action = req.getParameter("action");
+    if (action == null) {
+        Part actionPart = req.getPart("action");
+        if (actionPart != null) {
+            try (BufferedReader r = new BufferedReader(
+                    new InputStreamReader(actionPart.getInputStream(), StandardCharsets.UTF_8))) {
+                action = r.lines().collect(Collectors.joining());
+            }
         }
     }
+    if (action == null) {
+        resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Falta el parámetro 'action'");
+        return;
+    }
+
+    // 2) Busqueda
+    if ("search".equals(action)) {
+        buscarVideos(req, resp);
+        return;
+    }
+
+    // 3) Recuperar id del documento
+    String id = req.getParameter("id");
+    if (id == null) {
+        Part idPart = req.getPart("id");
+        if (idPart != null) {
+            try (BufferedReader r = new BufferedReader(
+                    new InputStreamReader(idPart.getInputStream(), StandardCharsets.UTF_8))) {
+                id = r.lines().collect(Collectors.joining());
+            }
+        }
+    }
+    if (id == null) {
+        resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Falta el parámetro 'id'");
+        return;
+    }
+
+    // 4) Subir .enc y proxy a /metadata/decrypt
+    if ("importMetadataEnc".equals(action)) {
+        Part filePart = req.getPart("file");
+        if (filePart == null || filePart.getSize() == 0) {
+            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Fichero cifrado no proporcionado");
+            return;
+        }
+
+        String targetUrl = API_BASE + "/" + id + "/metadata/decrypt";
+        HttpURLConnection conn = (HttpURLConnection) new URL(targetUrl).openConnection();
+        conn.setRequestMethod("POST");
+        conn.setRequestProperty("Content-Type", "application/xml; charset=UTF-8");
+        conn.setDoOutput(true);
+
+        // Enviar body
+        try (InputStream in = filePart.getInputStream();
+             OutputStream out = conn.getOutputStream()) {
+            byte[] buf = new byte[8192];
+            int len;
+            while ((len = in.read(buf)) != -1) {
+                out.write(buf, 0, len);
+            }
+        }
+
+        // Retornar status code y headers
+        resp.setStatus(conn.getResponseCode());
+        conn.getHeaderFields().forEach((k, vList) -> {
+            if (k != null) vList.forEach(v -> resp.addHeader(k, v));
+        });
+
+        // Propagar body de respuesta
+        try (InputStream in = conn.getInputStream();
+             OutputStream out = resp.getOutputStream()) {
+            byte[] buf = new byte[8192];
+            int len;
+            while ((len = in.read(buf)) != -1) {
+                out.write(buf, 0, len);
+            }
+        } finally {
+            conn.disconnect();
+        }
+        return;
+    }
+
+    resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Acción POST desconocida: " + action);
+}
 
     @Override
     protected void doPut(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
-        
+
         HttpSession sesion = req.getSession(false);
         if (sesion == null || sesion.getAttribute("usuarioLogueado") == null) {
             resp.sendRedirect("login.jsp");
             return;
         }
-        
+
         String action = req.getParameter("action");
         if ("views".equals(action)) {
             actualizarVistas(req, resp);
@@ -124,7 +206,7 @@ public class servletRest extends HttpServlet {
 
         } else {
             // 5) manejar error
-            req.getSession().setAttribute("mensajeError", "No se pudo cargar el video (código "+conn.getResponseCode()+")");
+            req.getSession().setAttribute("mensajeError", "No se pudo cargar el video (código " + conn.getResponseCode() + ")");
             resp.sendRedirect("listadoVid.jsp");
         }
     }
@@ -209,6 +291,29 @@ public class servletRest extends HttpServlet {
             String errorJson = new BufferedReader(new InputStreamReader(in))
                     .lines().collect(Collectors.joining("\n"));
             resp.getWriter().print(errorJson);
+        }
+    }
+
+    private void proxyTo(String targetUrl, HttpServletResponse resp) throws IOException {
+        HttpURLConnection conn = (HttpURLConnection) new URL(targetUrl).openConnection();
+        conn.setRequestMethod("GET");
+        conn.connect();
+        resp.setStatus(conn.getResponseCode());
+        conn.getHeaderFields().forEach((k, vList) -> {
+            if (k != null) {
+                for (String v : vList) {
+                    resp.addHeader(k, v);
+                }
+            }
+        });
+        try (InputStream is = conn.getInputStream(); OutputStream os = resp.getOutputStream()) {
+            byte[] buf = new byte[8192];
+            int r;
+            while ((r = is.read(buf)) != -1) {
+                os.write(buf, 0, r);
+            }
+        } finally {
+            conn.disconnect();
         }
     }
 

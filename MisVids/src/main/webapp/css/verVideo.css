@@ -81,3 +81,67 @@ h2 {
     color: #28a745;
     margin-top: 10px;
 }
+
+/* Metadatos: botón descargar + subir/desencriptar */
+.metadata-controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 20px;
+}
+
+/* Reutilizamos btn-danger para ambos botones, pero les damos tamaño uniforme */
+.metadata-controls .download-btn,
+.metadata-controls .decrypt-btn {
+    background-color: #e50914;
+    border: none;
+    color: #fff;
+    padding: 8px 16px;
+    font-size: 14px;
+    border-radius: 4px;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.metadata-controls .download-btn:hover,
+.metadata-controls .decrypt-btn:hover {
+    background-color: #b20710;
+}
+
+/* Formulario inline para subida */
+.metadata-controls .upload-form {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Input-file con fondo oscuro y texto claro */
+.metadata-controls .file-input {
+    background-color: #2a2a2a;
+    color: #fff;
+    border: 1px solid #444;
+    border-radius: 4px;
+    padding: 6px 8px;
+    font-size: 14px;
+}
+
+/* Si quieres recortar el texto del nombre de archivo y mantener altura fija */
+.metadata-controls .file-input::-webkit-file-upload-button {
+    background-color: #1f1f1f;
+    color: #fff;
+    border: none;
+    padding: 4px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.metadata-controls .file-input::file-selector-button {
+    background-color: #1f1f1f;
+    color: #fff;
+    border: none;
+    padding: 4px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+}

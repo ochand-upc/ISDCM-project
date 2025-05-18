@@ -10,6 +10,10 @@ import com.isdcm.model.Video;
 import com.isdcm.model.VideoFilter;
 import com.isdcm.manager.SearchManager;
 import com.isdcm.manager.VideoPlaybackManager;
+import com.isdcm.security.AesXmlEncryptionService;
+import com.isdcm.security.XmlEncryptionService;
+import com.isdcm.utils.Utils;
+import com.isdcm.utils.XmlDocumentBuilder;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
@@ -26,13 +30,28 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
 import jakarta.ws.rs.core.StreamingOutput;
-import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.sql.SQLException;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import org.w3c.dom.Document;
+import org.xml.sax.SAXException;
+
 
 @Path("/videos")
 @Produces(MediaType.APPLICATION_JSON)
 public class VideoResource {
+    
+        private final XmlEncryptionService xmlEncSvc = new AesXmlEncryptionService();
+
 
     /**
      * Incrementa en 1 el contador de visualizaciones del video con {id}. Método
@@ -322,4 +341,122 @@ public class VideoResource {
                     .build();
         }
     }
+    
+    @GET
+    @Path("{id}/metadata/encrypted")
+    @Produces(MediaType.APPLICATION_XML)
+    @Operation(
+        summary = "Descargar metadatos cifrados",
+        description = "Genera el XML DIDL, lo cifra con XML Encryption y lo devuelve como adjunto"
+    )
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Metadatos DIDL cifrado",
+            content = @Content(mediaType = MediaType.APPLICATION_XML,
+                               schema = @Schema(type = "string", format = "xml"),
+                               examples = @io.swagger.v3.oas.annotations.media.ExampleObject(
+                                   name  = "EncryptedMetadata",
+                                   value = "<xenc:EncryptedData>…</xenc:EncryptedData>"
+                               ))),
+        @ApiResponse(responseCode = "404", description = "Vídeo no encontrado",
+            content = @Content(mediaType = MediaType.APPLICATION_XML,
+                               examples = @io.swagger.v3.oas.annotations.media.ExampleObject(
+                                   name  = "NotFound",
+                                   value = "<error>Vídeo no encontrado</error>"
+                               ))),
+        @ApiResponse(responseCode = "500", description = "Error al cifrar metadatos",
+            content = @Content(mediaType = MediaType.APPLICATION_XML,
+                               examples = @io.swagger.v3.oas.annotations.media.ExampleObject(
+                                   name  = "ServerError",
+                                   value = "<error>Imposible encriptar metadatos</error>"
+                               )))
+    })
+    public Response getMetadataEncrypted(@PathParam("id") int id) {
+        try {
+            Video v = VideoDAO.obtenerVideoPorId(id);
+            if (v == null) {
+                return Response.status(Response.Status.NOT_FOUND)
+                               .entity("<error>Vídeo no encontrado</error>")
+                               .type(MediaType.APPLICATION_XML)
+                               .build();
+            }
+
+            Document plain = XmlDocumentBuilder.buildDocument(v);
+            Document enc   = xmlEncSvc.encrypt(plain, Utils.getSecretKey());
+            StreamingOutput so = out -> {
+                try {
+                    Transformer tf = TransformerFactory.newInstance().newTransformer();
+                    tf.setOutputProperty(OutputKeys.INDENT, "yes");
+                    tf.transform(new DOMSource(enc), new StreamResult(out));
+                } catch (TransformerException e) {
+                    throw new IOException("Error al serializar metadatos cifrados", e);
+                }
+            };
+
+            return Response.ok(so)
+                           .header("Content-Disposition", "attachment; filename=\"video" + id + ".metadata.xml.enc\"")
+                           .build();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                           .entity("<error>Imposible encriptar metadatos</error>")
+                           .type(MediaType.APPLICATION_XML)
+                           .build();
+        }
+    }
+    
+    @POST
+    @Path("{id}/metadata/decrypt")
+    @Consumes(MediaType.APPLICATION_XML)
+    @Produces(MediaType.APPLICATION_XML)
+    @Operation(summary = "Desencriptar metadatos",
+               description = "Recibe un XML cifrado en el body y lo desencripta")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Metadatos DIDL desencriptado",
+            content = @Content(mediaType = MediaType.APPLICATION_XML,
+                               schema = @Schema(type = "string", format = "xml"))),
+        @ApiResponse(responseCode = "400", description = "XML inválido o mal formado",
+            content = @Content(mediaType = MediaType.APPLICATION_XML)),
+        @ApiResponse(responseCode = "500", description = "Error al desencriptar metadatos",
+            content = @Content(mediaType = MediaType.APPLICATION_XML))
+    })
+    public Response postMetadataDecrypt(@PathParam("id") int id, InputStream encryptedXml) {
+        try {
+            if (VideoDAO.obtenerVideoPorId(id) == null) {
+                return Response.status(Response.Status.NOT_FOUND)
+                               .entity("<error>Vídeo no encontrado</error>")
+                               .type(MediaType.APPLICATION_XML)
+                               .build();
+            }
+            DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+            dbf.setNamespaceAware(true);
+            DocumentBuilder db = dbf.newDocumentBuilder();
+            Document encDoc = db.parse(encryptedXml);
+
+            Document plainDoc = xmlEncSvc.decrypt(encDoc, Utils.getSecretKey());
+
+            StreamingOutput so = out -> {
+                try {
+                    Transformer tf = TransformerFactory.newInstance().newTransformer();
+                    tf.setOutputProperty(OutputKeys.INDENT, "yes");
+                    tf.transform(new DOMSource(plainDoc), new StreamResult(out));
+                } catch (TransformerException e) {
+                    throw new IOException("Error al serializar XML desencriptado", e);
+                }
+            };
+            return Response.ok(so).build();
+        } catch (SAXException | ParserConfigurationException e) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                           .entity("<error>XML inválido o mal formado</error>")
+                           .type(MediaType.APPLICATION_XML)
+                           .build();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                           .entity("<error>Imposible desencriptar metadatos</error>")
+                           .type(MediaType.APPLICATION_XML)
+                           .build();
+        }
+    }
+    
 }

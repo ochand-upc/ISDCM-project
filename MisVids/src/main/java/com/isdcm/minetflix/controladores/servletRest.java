@@ -38,8 +38,9 @@ public class servletRest extends HttpServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
 
-        HttpSession sesion = req.getSession(false);
-        if (sesion == null || sesion.getAttribute("usuarioLogueado") == null) {
+        HttpSession session = req.getSession(false);
+        String jwt = (session == null) ? null : (String) session.getAttribute("jwt");
+        if (session == null || jwt == null) {
             resp.sendRedirect("login.jsp");
             return;
         }
@@ -49,15 +50,15 @@ public class servletRest extends HttpServlet {
 
         switch (action) {
             case "stream":
-                proxyStream(req, resp);
+                proxyStream(req, resp, jwt);
                 break;
             case "view":
-                pageView(req, resp);
+                pageView(req, resp, jwt);
                 break;
             case "exportMetadataEnc":
                 resp.setHeader("Content-Disposition",
                         "attachment; filename=\"video" + id + ".metadata.xml.enc\"");
-                proxyTo(API_BASE + "/" + id + "/metadata/encrypted", resp);
+                proxyTo(API_BASE + "/" + id + "/metadata/encrypted", resp, jwt);
                 break;
 
             default:
@@ -65,113 +66,131 @@ public class servletRest extends HttpServlet {
         }
     }
 
-@Override
-protected void doPost(HttpServletRequest req, HttpServletResponse resp)
-        throws ServletException, IOException {
-    // 1) LEER action (getParameter o, en multipart, como Part)
-    String action = req.getParameter("action");
-    if (action == null) {
-        Part actionPart = req.getPart("action");
-        if (actionPart != null) {
-            try (BufferedReader r = new BufferedReader(
-                    new InputStreamReader(actionPart.getInputStream(), StandardCharsets.UTF_8))) {
-                action = r.lines().collect(Collectors.joining());
-            }
-        }
-    }
-    if (action == null) {
-        resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Falta el parámetro 'action'");
-        return;
-    }
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp)
+            throws ServletException, IOException {
 
-    // 2) Busqueda
-    if ("search".equals(action)) {
-        buscarVideos(req, resp);
-        return;
-    }
-
-    // 3) Recuperar id del documento
-    String id = req.getParameter("id");
-    if (id == null) {
-        Part idPart = req.getPart("id");
-        if (idPart != null) {
-            try (BufferedReader r = new BufferedReader(
-                    new InputStreamReader(idPart.getInputStream(), StandardCharsets.UTF_8))) {
-                id = r.lines().collect(Collectors.joining());
-            }
-        }
-    }
-    if (id == null) {
-        resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Falta el parámetro 'id'");
-        return;
-    }
-
-    // 4) Subir .enc y proxy a /metadata/decrypt
-    if ("importMetadataEnc".equals(action)) {
-        Part filePart = req.getPart("file");
-        if (filePart == null || filePart.getSize() == 0) {
-            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Fichero cifrado no proporcionado");
+        HttpSession session = req.getSession(false);
+        String jwt = (session == null) ? null : (String) session.getAttribute("jwt");
+        if (session == null || jwt == null) {
+            resp.sendRedirect("login.jsp");
             return;
         }
 
-        String targetUrl = API_BASE + "/" + id + "/metadata/decrypt";
-        HttpURLConnection conn = (HttpURLConnection) new URL(targetUrl).openConnection();
-        conn.setRequestMethod("POST");
-        conn.setRequestProperty("Content-Type", "application/xml; charset=UTF-8");
-        conn.setDoOutput(true);
-
-        // Enviar body
-        try (InputStream in = filePart.getInputStream();
-             OutputStream out = conn.getOutputStream()) {
-            byte[] buf = new byte[8192];
-            int len;
-            while ((len = in.read(buf)) != -1) {
-                out.write(buf, 0, len);
+        // 1) LEER action (getParameter o, en multipart, como Part)
+        String action = req.getParameter("action");
+        if (action == null) {
+            Part actionPart = req.getPart("action");
+            if (actionPart != null) {
+                try (BufferedReader r = new BufferedReader(
+                        new InputStreamReader(actionPart.getInputStream(), StandardCharsets.UTF_8))) {
+                    action = r.lines().collect(Collectors.joining());
+                }
             }
         }
-
-        // Retornar status code y headers
-        resp.setStatus(conn.getResponseCode());
-        conn.getHeaderFields().forEach((k, vList) -> {
-            if (k != null) vList.forEach(v -> resp.addHeader(k, v));
-        });
-
-        // Propagar body de respuesta
-        try (InputStream in = conn.getInputStream();
-             OutputStream out = resp.getOutputStream()) {
-            byte[] buf = new byte[8192];
-            int len;
-            while ((len = in.read(buf)) != -1) {
-                out.write(buf, 0, len);
-            }
-        } finally {
-            conn.disconnect();
+        if (action == null) {
+            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Falta el parámetro 'action'");
+            return;
         }
-        return;
+
+        // 2) Busqueda
+        if ("search".equals(action)) {
+            buscarVideos(req, resp, jwt);
+            return;
+        }
+
+        // 3) Recuperar id del documento
+        String id = req.getParameter("id");
+        if (id == null) {
+            Part idPart = req.getPart("id");
+            if (idPart != null) {
+                try (BufferedReader r = new BufferedReader(
+                        new InputStreamReader(idPart.getInputStream(), StandardCharsets.UTF_8))) {
+                    id = r.lines().collect(Collectors.joining());
+                }
+            }
+        }
+        if (id == null) {
+            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Falta el parámetro 'id'");
+            return;
+        }
+
+        // 4) Subir .enc y proxy a /metadata/decrypt
+        if ("importMetadataEnc".equals(action)) {
+            Part filePart = req.getPart("file");
+            if (filePart == null || filePart.getSize() == 0) {
+                resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Fichero cifrado no proporcionado");
+                return;
+            }
+
+            String targetUrl = API_BASE + "/" + id + "/metadata/decrypt";
+            HttpURLConnection conn = (HttpURLConnection) new URL(targetUrl).openConnection();
+            conn.setRequestMethod("POST");
+            conn.setRequestProperty("Authorization", "Bearer " + jwt);
+            conn.setRequestProperty("Content-Type", "application/xml; charset=UTF-8");
+            conn.setDoOutput(true);
+
+            // Enviar body
+            try (InputStream in = filePart.getInputStream(); OutputStream out = conn.getOutputStream()) {
+                byte[] buf = new byte[8192];
+                int len;
+                while ((len = in.read(buf)) != -1) {
+                    out.write(buf, 0, len);
+                }
+            }
+            conn.connect();
+
+            // Retornar status code y headers
+            int status = conn.getResponseCode();
+            resp.setStatus(status);
+
+            if (status == HttpURLConnection.HTTP_UNAUTHORIZED) {
+                resp.sendRedirect("login.jsp?error=token");
+                return;
+            }
+
+            conn.getHeaderFields().forEach((k, vList) -> {
+                if (k != null) {
+                    vList.forEach(v -> resp.addHeader(k, v));
+                }
+            });
+
+            // Propagar body de respuesta
+            try (InputStream in = conn.getInputStream(); OutputStream out = resp.getOutputStream()) {
+                byte[] buf = new byte[8192];
+                int len;
+                while ((len = in.read(buf)) != -1) {
+                    out.write(buf, 0, len);
+                }
+            } finally {
+                conn.disconnect();
+            }
+            return;
+        }
+
+        resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Acción POST desconocida: " + action);
     }
-
-    resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Acción POST desconocida: " + action);
-}
 
     @Override
     protected void doPut(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
 
-        HttpSession sesion = req.getSession(false);
-        if (sesion == null || sesion.getAttribute("usuarioLogueado") == null) {
+        HttpSession session = req.getSession(false);
+        String jwt = (session == null) ? null : (String) session.getAttribute("jwt");
+        if (session == null || jwt == null) {
             resp.sendRedirect("login.jsp");
             return;
         }
 
         String action = req.getParameter("action");
         if ("views".equals(action)) {
-            actualizarVistas(req, resp);
+            actualizarVistas(req, resp, jwt);
         } else {
             resp.sendError(404);
         }
     }
 
-    private void pageView(HttpServletRequest req, HttpServletResponse resp)
+    private void pageView(HttpServletRequest req, HttpServletResponse resp, String jwt)
             throws ServletException, IOException {
         // 1) parsear id
         String sId = req.getParameter("id");
@@ -184,6 +203,7 @@ protected void doPost(HttpServletRequest req, HttpServletResponse resp)
         // 2) llamar al endpoint GET /api/videos/{id}
         URL url = new URL(API_BASE + "/" + id);
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setRequestProperty("Authorization", "Bearer " + jwt);
         conn.setRequestMethod("GET");
         conn.setRequestProperty("Accept", "application/json");
 
@@ -211,7 +231,7 @@ protected void doPost(HttpServletRequest req, HttpServletResponse resp)
         }
     }
 
-    private void proxyStream(HttpServletRequest req, HttpServletResponse resp)
+    private void proxyStream(HttpServletRequest req, HttpServletResponse resp, String jwt)
             throws ServletException, IOException {
         String id = req.getParameter("id");
         URL url = new URL(API_BASE + "/" + id + "/stream");
@@ -221,10 +241,16 @@ protected void doPost(HttpServletRequest req, HttpServletResponse resp)
         if (range != null) {
             conn.setRequestProperty("Range", range);
         }
+        conn.setRequestProperty("Authorization", "Bearer " + jwt);
         conn.setRequestMethod("GET");
 
         int status = conn.getResponseCode();
         resp.setStatus(status);
+
+        if (status == HttpURLConnection.HTTP_UNAUTHORIZED) {
+            resp.sendRedirect("login.jsp?error=token");
+            return;
+        }
 
         // Copiar solo los headers relevantes
         for (Map.Entry<String, List<String>> header : conn.getHeaderFields().entrySet()) {
@@ -252,7 +278,7 @@ protected void doPost(HttpServletRequest req, HttpServletResponse resp)
         }
     }
 
-    private void buscarVideos(HttpServletRequest req, HttpServletResponse resp)
+    private void buscarVideos(HttpServletRequest req, HttpServletResponse resp, String jwt)
             throws ServletException, IOException {
 
         // 1) Leer el JSON del body y deserializarlo a VideoFilter
@@ -261,6 +287,7 @@ protected void doPost(HttpServletRequest req, HttpServletResponse resp)
         // 2) Llamar al endpoint real
         URL url = new URL(API_BASE + "/search");
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setRequestProperty("Authorization", "Bearer " + jwt);
         conn.setRequestMethod("POST");
         conn.setRequestProperty("Content-Type", "application/json");
         conn.setRequestProperty("Accept", "application/json");
@@ -277,7 +304,7 @@ protected void doPost(HttpServletRequest req, HttpServletResponse resp)
         resp.setStatus(status);
         resp.setContentType("application/json; charset=UTF-8");
 
-        if (status == 200) {
+        if (status == HttpURLConnection.HTTP_OK) {
             // devuelve el objeto completo como JSON
             PaginatedResponse<Video> page = mapper.readValue(
                     in,
@@ -286,6 +313,9 @@ protected void doPost(HttpServletRequest req, HttpServletResponse resp)
             );
             mapper.writeValue(resp.getWriter(), page);
 
+        } else if (status == HttpURLConnection.HTTP_UNAUTHORIZED) {
+            resp.sendRedirect("login.jsp?error=token");
+            return;
         } else {
             // opcional: propaga el error tal cual vino
             String errorJson = new BufferedReader(new InputStreamReader(in))
@@ -294,11 +324,17 @@ protected void doPost(HttpServletRequest req, HttpServletResponse resp)
         }
     }
 
-    private void proxyTo(String targetUrl, HttpServletResponse resp) throws IOException {
+    private void proxyTo(String targetUrl, HttpServletResponse resp, String jwt) throws IOException {
         HttpURLConnection conn = (HttpURLConnection) new URL(targetUrl).openConnection();
+        conn.setRequestProperty("Authorization", "Bearer " + jwt);
         conn.setRequestMethod("GET");
         conn.connect();
         resp.setStatus(conn.getResponseCode());
+        if (conn.getResponseCode() == HttpURLConnection.HTTP_UNAUTHORIZED) {
+            resp.sendRedirect("login.jsp?error=token");
+            return;
+        }
+
         conn.getHeaderFields().forEach((k, vList) -> {
             if (k != null) {
                 for (String v : vList) {
@@ -317,13 +353,19 @@ protected void doPost(HttpServletRequest req, HttpServletResponse resp)
         }
     }
 
-    private void actualizarVistas(HttpServletRequest req, HttpServletResponse resp)
+    private void actualizarVistas(HttpServletRequest req, HttpServletResponse resp, String jwt)
             throws IOException {
         String id = req.getParameter("id");
         URL url = new URL(API_BASE + "/" + id + "/views");
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setRequestProperty("Authorization", "Bearer " + jwt);
         conn.setRequestMethod("PUT");
         int status = conn.getResponseCode();
         resp.setStatus(status);
+
+        if (status == HttpURLConnection.HTTP_UNAUTHORIZED) {
+            resp.sendRedirect("login.jsp?error=token");
+            return;
+        }
     }
 }

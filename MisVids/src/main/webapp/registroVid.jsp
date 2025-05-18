@@ -6,8 +6,8 @@
 
 <%@ page session="true" %>
 <%
-    // Comprobamos si existe sesión
-    if (session.getAttribute("usuarioLogueado") == null) {
+    // Comprobamos si existe sesiï¿½n
+    if (session.getAttribute("jwt") == null) {
         response.sendRedirect("login.jsp");
         return;
     }
@@ -26,7 +26,7 @@
         <div class="registro-container">
             <h2>Registrar nuevo video</h2>
             <form action="servletRegistroVid" method="post" enctype="multipart/form-data">   
-                <label>Título:</label>
+                <label>Tï¿½tulo:</label>
                 <input type="text" name="titulo" 
                        value="<%= request.getAttribute("titulo") != null ? request.getAttribute("titulo") : "" %>"
                        maxlength="90"
@@ -43,15 +43,15 @@
                        value="<%= request.getAttribute("fecha") != null ? request.getAttribute("fecha") : "" %>"
                        required />
 
-                <label>Descripción:</label>
+                <label>Descripciï¿½n:</label>
                 <textarea name="descripcion" 
                           value="<%= request.getAttribute("descripcion") != null ? request.getAttribute("descripcion") : "" %>"
                           maxlength="250"
-                          placeholder="Añade una breve descripción del video"></textarea>
+                          placeholder="Aï¿½ade una breve descripciï¿½n del video"></textarea>
 
                 <label>Tipo de Video:</label>
                 <select id="tipoVideo" name="tipoVideo" required>
-                    <option value="">Seleccione una opción</option>
+                    <option value="">Seleccione una opciï¿½n</option>
                     <option value="archivo">Subir archivo</option>
                     <option value="youtube">Enlace de YouTube</option>
                 </select>
@@ -66,7 +66,7 @@
                          data-bs-autohide="false">
                             <div class="d-flex">
                                 <div class="toast-body">
-                                    <!-- Mensaje dinámico -->
+                                    <!-- Mensaje dinï¿½mico -->
                                 </div>
                                 <button type="button" class="btn-close btn-close-white me-2 m-auto"
                                         data-bs-dismiss="toast" aria-label="Close"></button>
@@ -77,7 +77,7 @@
                         function validarTamanio() {
                             const input = document.getElementById("archivoVideo");
                             const file = input.files[0];
-                            const maxSizeMB = 50; // Límite en MB
+                            const maxSizeMB = 50; // Lï¿½mite en MB
                             const maxSizeBytes = maxSizeMB * 1024 * 1024;
                             const toastEl = document.getElementById("errorFileToast");
                             const toastBody = toastEl.querySelector(".toast-body");
@@ -92,7 +92,7 @@
                                 // Mostrar el toast
                                 toast.show();
 
-                                // Borrar el archivo para evitar el envío
+                                // Borrar el archivo para evitar el envï¿½o
                                 input.value = "";
                             }
                         }
@@ -123,7 +123,7 @@
                     </div>
                 </div>
             </div>
-            <!-- Script para inicializar el toast automáticamente -->
+            <!-- Script para inicializar el toast automï¿½ticamente -->
             <script>
                 document.addEventListener('DOMContentLoaded', function () {
                     var toastEl = document.getElementById('errorToast');
@@ -149,7 +149,7 @@
                     </div>
                 </div>
             </div>
-            <!-- Script para inicializar el toast automáticamente -->
+            <!-- Script para inicializar el toast automï¿½ticamente -->
             <script>
                 document.addEventListener('DOMContentLoaded', function () {
                     var toastEl = document.getElementById('successToast');
@@ -159,7 +159,7 @@
             </script>
             <% } %>
 
-            <a href="home.jsp" class="back-link">Volver al menú principal</a>
+            <a href="home.jsp" class="back-link">Volver al menï¿½ principal</a>
         </div>
 
         <script>

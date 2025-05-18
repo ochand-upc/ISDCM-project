@@ -6,7 +6,7 @@
 
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%
-    if (session.getAttribute("usuarioLogueado") != null) {
+    if (session.getAttribute("jwt") != null) {
         response.sendRedirect("home.jsp");
         return;
     }

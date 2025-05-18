@@ -24,6 +24,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.GenericEntity;
 import jakarta.ws.rs.core.MediaType;
@@ -48,6 +49,7 @@ import org.xml.sax.SAXException;
 
 @Path("/videos")
 @Produces(MediaType.APPLICATION_JSON)
+@SecurityRequirement(name = "bearerAuth")
 public class VideoResource {
     
         private final XmlEncryptionService xmlEncSvc = new AesXmlEncryptionService();

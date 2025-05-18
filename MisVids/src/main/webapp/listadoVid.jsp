@@ -7,7 +7,7 @@
 <%@ page session="true" contentType="text/html; charset=UTF-8" %>
 <%
     // Control de sesión igual que antes
-    if (session.getAttribute("usuarioLogueado") == null) {
+    if (session.getAttribute("jwt") == null) {
         response.sendRedirect("login.jsp");
         return;
     }

@@ -6,7 +6,7 @@
 
 <%@ page contentType="text/html;charset=UTF-8" language="java" session="true" %>
 <%
-    if (session.getAttribute("usuarioLogueado") == null) {
+    if (session.getAttribute("jwt") == null) {
         response.sendRedirect("login.jsp");
         return;
     }
@@ -23,7 +23,7 @@
 </head>
 <body>
     <div class="container">
-        <h2>Bienvenido <%= session.getAttribute("usuarioLogueado") %> a MiNetflix</h2>
+        <h2>Bienvenido <%= session.getAttribute("username") %> a MiNetflix</h2>
         <p>Seleccione una opción:</p>
 
         <form action="registroVid.jsp">

@@ -38,7 +38,7 @@ public class servletRegistroVid extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         HttpSession sesion = request.getSession(false);
-        if (sesion == null || sesion.getAttribute("usuarioLogueado") == null) {
+        if (sesion == null || sesion.getAttribute("jwt") == null) {
             response.sendRedirect("login.jsp");
             return;
         }

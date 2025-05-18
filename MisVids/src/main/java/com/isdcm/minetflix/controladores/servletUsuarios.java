@@ -6,8 +6,16 @@ import java.sql.SQLException;
 import jakarta.servlet.*;
 import jakarta.servlet.http.*;
 import com.isdcm.minetflix.model.Usuario;
+import com.isdcm.minetflix.utils.AppConfig;
+import jakarta.json.Json;
+import jakarta.json.JsonObject;
 
 import jakarta.servlet.annotation.WebServlet;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
 @WebServlet(name = "servletUsuarios", urlPatterns = {"/servletUsuarios"})
 public class servletUsuarios extends HttpServlet {
@@ -29,31 +37,45 @@ public class servletUsuarios extends HttpServlet {
         String password = request.getParameter("password");
 
         // Validar campos vacíos
-        if (username == null || username.isEmpty() || 
-            password == null || password.isEmpty()) {
+        if (username == null || username.isEmpty()
+                || password == null || password.isEmpty()) {
             request.setAttribute("mensajeError", "Todos los campos son obligatorios.");
             request.getRequestDispatcher("login.jsp").forward(request, response);
             return;
         }
-        
+
         // 1) Hashear la contraseña que llega del formulario
         String hashedPassword = UsuarioDAO.hashPassword(password);
 
-        try {
-            boolean valido = UsuarioDAO.validarLogin(username, hashedPassword);
-            if (valido) {
-                // Crear sesión
-                HttpSession sesion = request.getSession(true);
-                sesion.setAttribute("usuarioLogueado", username);
-                response.sendRedirect("home.jsp");
-            } else {
-                request.setAttribute("mensajeError", "Credenciales incorrectas.");
-                request.getRequestDispatcher("login.jsp").forward(request, response);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            request.setAttribute("mensajeError", "Error de base de datos.");
+        // Llamada al Web-Service
+        URL url = new URL(AppConfig.get("web-service.url") + "/login");
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setDoOutput(true);
+        conn.setRequestMethod("POST");
+        conn.setRequestProperty("Content-Type", "application/json");
+        conn.setRequestProperty("Accept", "application/json");
+
+        String body = String.format(
+                "{\"username\":\"%s\",\"password\":\"%s\"}",
+                username, hashedPassword
+        );
+
+        try (OutputStream os = conn.getOutputStream()) {
+            os.write(body.getBytes(StandardCharsets.UTF_8));
+        }
+        int code = conn.getResponseCode();
+
+        if (code == 200) {
+            JsonObject json = Json.createReader(conn.getInputStream()).readObject();
+            String token = json.getString("token");
+            // Guardar token en sesión
+            request.getSession().setAttribute("jwt", token);
+            request.getSession().setAttribute("username", username);
+            response.sendRedirect("home.jsp");
+        } else {
+            request.setAttribute("mensajeError", "Credenciales inválidas");
             request.getRequestDispatcher("login.jsp").forward(request, response);
+
         }
     }
 
@@ -65,19 +87,19 @@ public class servletUsuarios extends HttpServlet {
         String username = request.getParameter("username");
         String password = request.getParameter("password");
         String password2 = request.getParameter("password2");
-        
+
         request.setAttribute("nombre", nombre);
         request.setAttribute("apellidos", apellidos);
         request.setAttribute("email", email);
         request.setAttribute("username", username);
 
         // Validar campos vacíos o formatos
-        if (nombre == null || nombre.isEmpty() ||
-            apellidos == null || apellidos.isEmpty() ||
-            email == null || email.isEmpty() ||
-            username == null || username.isEmpty() ||
-            password == null || password.isEmpty() ||
-            password2 == null || password2.isEmpty()) {
+        if (nombre == null || nombre.isEmpty()
+                || apellidos == null || apellidos.isEmpty()
+                || email == null || email.isEmpty()
+                || username == null || username.isEmpty()
+                || password == null || password.isEmpty()
+                || password2 == null || password2.isEmpty()) {
 
             request.setAttribute("mensajeError", "Todos los campos son obligatorios.");
             request.getRequestDispatcher("registroUsu.jsp").forward(request, response);
@@ -90,11 +112,11 @@ public class servletUsuarios extends HttpServlet {
             request.getRequestDispatcher("registroUsu.jsp").forward(request, response);
             return;
         }
-        
+
         // Verificar si el username ya existe
         try {
             if (UsuarioDAO.existeUsername(username)) {
-                request.setAttribute("mensajeError", "Ya existe el usuario " + username +".");
+                request.setAttribute("mensajeError", "Ya existe el usuario " + username + ".");
                 request.getRequestDispatcher("registroUsu.jsp").forward(request, response);
                 return;
             }
@@ -103,7 +125,7 @@ public class servletUsuarios extends HttpServlet {
             request.getRequestDispatcher("registroUsu.jsp").forward(request, response);
             return;
         }
-        
+
         // Verificar si el email ya existe
         try {
             if (UsuarioDAO.existeEmail(email)) {
@@ -116,7 +138,7 @@ public class servletUsuarios extends HttpServlet {
             request.getRequestDispatcher("registroUsu.jsp").forward(request, response);
             return;
         }
-        
+
         // Hashear la contraseña
         String hashedPassword = UsuarioDAO.hashPassword(password);
 
@@ -133,9 +155,39 @@ public class servletUsuarios extends HttpServlet {
             e.printStackTrace();
             request.setAttribute("mensajeError", "Error al registrar usuario en la base de datos.");
         }
-        // Crear sesión
-        HttpSession sesion = request.getSession(true);
-        sesion.setAttribute("usuarioLogueado", username);
-        request.getRequestDispatcher("home.jsp").forward(request, response);
+
+        String wsUrl = AppConfig.get("web-service.url") + "/login";
+        HttpURLConnection conn = (HttpURLConnection) new URL(wsUrl).openConnection();
+        conn.setDoOutput(true);
+        conn.setRequestMethod("POST");
+        conn.setRequestProperty("Content-Type", "application/json");
+        conn.setRequestProperty("Accept", "application/json");
+
+        String payload = String.format(
+                "{\"username\":\"%s\",\"password\":\"%s\"}",
+                username, hashedPassword
+        );
+
+        try (OutputStream os = conn.getOutputStream()) {
+            os.write(payload.getBytes(StandardCharsets.UTF_8));
+        }
+
+        int code = conn.getResponseCode();
+        if (code == HttpURLConnection.HTTP_OK) {
+            JsonObject json = Json.createReader(conn.getInputStream()).readObject();
+            String token = json.getString("token");
+
+            // Guardar token y usuario en sesión
+            HttpSession session = request.getSession(true);
+            session.setAttribute("jwt", token);
+            session.setAttribute("username", username);
+
+            // Redirección al home ya logueado
+            response.sendRedirect("home.jsp");
+        } else {
+            // Redirección a login por error en manejo del token
+            request.setAttribute("mensajeError", "Registro OK, pero fallo al iniciar sesión automáticamente.");
+            request.getRequestDispatcher("login.jsp").forward(request, response);
+        }
     }
 }

@@ -85,5 +85,11 @@ public class VideoDAO {
                 ResultSet rs = wrap.getResultSet()) {
             return rs.next(); // true si existe un video con el mismo título y autor
         }
-    } 
+    }
+    
+    // Método para incrementar las visualizaciones de un video
+    public static boolean incrementarVisualizacion(int videoId) throws SQLException, IOException {
+        String sql = "UPDATE VIDEOS SET REPRODUCCIONES = REPRODUCCIONES + 1 WHERE ID = ?";
+        return DatabaseExecutor.ejecutarUpdate(sql, videoId);
+    }
 }

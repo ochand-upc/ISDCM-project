@@ -5,6 +5,7 @@
 package com.isdcm.web.service;
 
 import com.isdcm.dao.VideoDAO;
+import com.isdcm.exceptions.VideoPlaybackException;
 import com.isdcm.model.PaginatedResponse;
 import com.isdcm.model.Video;
 import com.isdcm.model.VideoFilter;
@@ -54,6 +55,83 @@ public class VideoResource {
     
         private final XmlEncryptionService xmlEncSvc = new AesXmlEncryptionService();
 
+
+    /**
+     * Verificar disponibilidad del video sin descargar contenido
+     */
+    @Operation(summary = "Verificar disponibilidad del video para streaming")
+    @ApiResponses({
+        @ApiResponse(
+                responseCode = "200",
+                description = "Video disponible para streaming",
+                headers = {
+                    @Header(name = "Content-Type", description = "Tipo MIME del video"),
+                    @Header(name = "Content-Length", description = "Tamaño del video en bytes"),
+                    @Header(name = "Accept-Ranges", description = "Soporte de rangos")
+                }
+        ),
+        @ApiResponse(
+                responseCode = "404",
+                description = "Vídeo no encontrado",
+                content = @Content(
+                        mediaType = MediaType.APPLICATION_JSON,
+                        examples = @ExampleObject(
+                                name = "NotFoundExample",
+                                value = "{\"error\":\"Video no encontrado\",\"id\":5}"
+                        )
+                )
+        )
+    })
+    @HEAD
+    @Path("/{id}/stream")
+    public Response checkVideoAvailability(
+            @PathParam("id") int id) {
+
+        try {
+            // 1) Recuperar metadata del vídeo
+            Video v = VideoDAO.obtenerVideoPorId(id);
+            if (v == null || !"LOCAL".equals(v.getTipoFuente())) {
+                return Response.status(Status.NOT_FOUND)
+                        .entity("{\"error\":\"Vídeo no válido o no encontrado\",\"id\":" + id + "}")
+                        .type(MediaType.APPLICATION_JSON)
+                        .build();
+            }
+
+            // 2) Verificar que el archivo existe y obtener tamaño
+            long plainVideoLength;
+            try {
+                plainVideoLength = VideoPlaybackManager.getPlainVideoLength(id);
+                System.out.println("Video " + id + " - Verificación OK - Tamaño: " + plainVideoLength + " bytes");
+            } catch (VideoPlaybackException e) {
+                System.err.println("Error verificando disponibilidad de video " + id + ": " + e.getUserFriendlyMessage());
+                return Response.status(e.getHttpStatusCode())
+                        .entity("{\"error\":\"" + e.getUserFriendlyMessage() + "\",\"type\":\"" + e.getErrorType() + "\",\"id\":" + id + "}")
+                        .type(MediaType.APPLICATION_JSON)
+                        .build();
+            } catch (Exception e) {
+                System.err.println("Error inesperado verificando video " + id + ": " + e.getMessage());
+                return Response.status(Status.INTERNAL_SERVER_ERROR)
+                        .entity("{\"error\":\"Error interno verificando video\",\"details\":\"" + e.getMessage() + "\",\"id\":" + id + "}")
+                        .type(MediaType.APPLICATION_JSON)
+                        .build();
+            }
+            
+            // 3) Respuesta exitosa con headers informativos
+            return Response.ok()
+                    .type(v.getMimeType())
+                    .header("Content-Length", String.valueOf(plainVideoLength))
+                    .header("Accept-Ranges", "bytes")
+                    .header("Cache-Control", "no-cache, no-store, must-revalidate")
+                    .build();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Response.status(Status.INTERNAL_SERVER_ERROR)
+                    .entity("{\"error\":\"Error interno del servidor\",\"details\":\"" + e.getMessage() + "\",\"id\":" + id + "}")
+                    .type(MediaType.APPLICATION_JSON)
+                    .build();
+        }
+    }
 
     /**
      * Incrementa en 1 el contador de visualizaciones del video con {id}. Método
@@ -171,7 +249,7 @@ public class VideoResource {
     })
     @GET
     @Path("/{id}/stream")
-    @Produces("video/mp4")
+    @Produces("video/*") // Cambiado de video/mp4 a video/* para soportar otros formatos
     public Response streamVideo(
             @PathParam("id") int id,
             @Parameter(in = ParameterIn.HEADER, name = "Range",
@@ -184,36 +262,94 @@ public class VideoResource {
             Video v = VideoDAO.obtenerVideoPorId(id);
             if (v == null || !"LOCAL".equals(v.getTipoFuente())) {
                 return Response.status(Status.NOT_FOUND)
-                        .entity("Vídeo no válido o no encontrado")
+                        .entity("{\"error\":\"Vídeo no válido o no encontrado\",\"id\":" + id + "}")
+                        .type(MediaType.APPLICATION_JSON)
                         .build();
             }
 
-            // 2) Generar el stream desencriptado (on-the-fly)
-            StreamingOutput stream = VideoPlaybackManager.streamLocalVideo(id, rangeHeader);
-
-            // 3) Construir la respuesta con headers
+            // 2) Obtener tamaño real del video desencriptado
+            long plainVideoLength;
+            try {
+                plainVideoLength = VideoPlaybackManager.getPlainVideoLength(id);
+                System.out.println("Video " + id + " - Tamaño real: " + plainVideoLength + " bytes");
+            } catch (VideoPlaybackException e) {
+                System.err.println("Error obteniendo tamaño de video " + id + ": " + e.getUserFriendlyMessage());
+                return Response.status(e.getHttpStatusCode())
+                        .entity("{\"error\":\"" + e.getUserFriendlyMessage() + "\",\"type\":\"" + e.getErrorType() + "\",\"id\":" + id + "}")
+                        .type(MediaType.APPLICATION_JSON)
+                        .build();
+            } catch (Exception e) {
+                System.err.println("Error inesperado obteniendo tamaño de video " + id + ": " + e.getMessage());
+                // Fallback a estimación
+                long encryptedFileLength = VideoPlaybackManager.getFileLength(id);
+                plainVideoLength = Math.max(0, encryptedFileLength - 32);
+            }
+            
+            // 3) Parsear Range header si existe
+            long start = 0, end = plainVideoLength - 1;
+            if (rangeHeader != null && rangeHeader.startsWith("bytes=")) {
+                String[] parts = rangeHeader.substring(6).split("-");
+                try {
+                    start = Long.parseLong(parts[0]);
+                    if (parts.length > 1 && !parts[1].isEmpty()) {
+                        end = Math.min(Long.parseLong(parts[1]), plainVideoLength - 1);
+                    }
+                    // Validar rangos
+                    if (start >= plainVideoLength || start > end || start < 0) {
+                        return Response.status(Status.REQUESTED_RANGE_NOT_SATISFIABLE)
+                                .header("Content-Range", "bytes */" + plainVideoLength)
+                                .entity("{\"error\":\"Rango de bytes inválido\",\"range\":\"" + rangeHeader + "\",\"fileSize\":" + plainVideoLength + ",\"id\":" + id + "}")
+                                .type(MediaType.APPLICATION_JSON)
+                                .build();
+                    }
+                } catch (NumberFormatException e) {
+                    return Response.status(Status.BAD_REQUEST)
+                            .entity("{\"error\":\"Range header inválido\",\"range\":\"" + rangeHeader + "\",\"id\":" + id + "}")
+                            .type(MediaType.APPLICATION_JSON)
+                            .build();
+                }
+            }
+            
+            // 4) Generar el stream desencriptado
+            StreamingOutput stream;
+            try {
+                stream = VideoPlaybackManager.streamLocalVideo(id, rangeHeader);
+            } catch (VideoPlaybackException e) {
+                System.err.println("Error de streaming para video " + id + ": " + e.getUserFriendlyMessage());
+                return Response.status(e.getHttpStatusCode())
+                        .entity("{\"error\":\"" + e.getUserFriendlyMessage() + "\",\"type\":\"" + e.getErrorType() + "\",\"details\":\"" + e.getMessage() + "\",\"id\":" + id + "}")
+                        .type(MediaType.APPLICATION_JSON)
+                        .build();
+            }
+            
+            // 5) Construir respuesta con headers correctos
             Response.ResponseBuilder rb = Response.ok(stream)
                     .type(v.getMimeType())
-                    .header("Accept-Ranges", "bytes");
+                    .header("Accept-Ranges", "bytes")
+                    .header("Cache-Control", "no-cache, no-store, must-revalidate")
+                    .header("Pragma", "no-cache")
+                    .header("Expires", "0");
 
-            // Si vino Range, devolvemos 206 Partial Content
+            // 6) Si hay Range request, devolver 206 Partial Content con headers apropiados
             if (rangeHeader != null) {
-                rb.status(Status.PARTIAL_CONTENT);
+                long contentLength = end - start + 1;
+                rb.status(Status.PARTIAL_CONTENT)
+                  .header("Content-Range", String.format("bytes %d-%d/%d", start, end, plainVideoLength))
+                  .header("Content-Length", String.valueOf(contentLength));
+                System.out.println("Enviando video " + id + " - Range: " + start + "-" + end + "/" + plainVideoLength);
+            } else {
+                // Request completo - agregar Content-Length total
+                rb.header("Content-Length", String.valueOf(plainVideoLength));
+                System.out.println("Enviando video " + id + " completo - Tamaño: " + plainVideoLength + " bytes");
             }
 
             return rb.build();
 
-        } catch (IllegalArgumentException iae) {
-            // Bad request para parámetros inválidos
-            return Response.status(Status.BAD_REQUEST)
-                    .entity(iae.getMessage())
-                    .build();
-
         } catch (Exception e) {
-            // Error inesperado durante I/O o desencriptado
             e.printStackTrace();
             return Response.status(Status.INTERNAL_SERVER_ERROR)
-                    .entity("Error al procesar el streaming: " + e.getMessage())
+                    .entity("{\"error\":\"Error interno del servidor\",\"details\":\"" + e.getMessage() + "\",\"id\":" + id + "}")
+                    .type(MediaType.APPLICATION_JSON)
                     .build();
         }
     }

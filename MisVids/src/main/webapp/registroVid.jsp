@@ -4,9 +4,10 @@
     Author     : alumne
 --%>
 
+<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ page session="true" %>
 <%
-    // Comprobamos si existe sesi�n
+    // Comprobamos si existe sesión
     if (session.getAttribute("jwt") == null) {
         response.sendRedirect("login.jsp");
         return;
@@ -14,6 +15,7 @@
 %>
 <html lang="es">
     <head>
+        <meta charset="UTF-8">
         <title>Registro de Videos - MiNetflix</title>
         <!-- Bootstrap 5 CSS (CDN) -->
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" 
@@ -26,7 +28,7 @@
         <div class="registro-container">
             <h2>Registrar nuevo video</h2>
             <form action="servletRegistroVid" method="post" enctype="multipart/form-data">   
-                <label>T�tulo:</label>
+                <label>Título:</label>
                 <input type="text" name="titulo" 
                        value="<%= request.getAttribute("titulo") != null ? request.getAttribute("titulo") : "" %>"
                        maxlength="90"
@@ -43,15 +45,15 @@
                        value="<%= request.getAttribute("fecha") != null ? request.getAttribute("fecha") : "" %>"
                        required />
 
-                <label>Descripci�n:</label>
+                <label>Descripción:</label>
                 <textarea name="descripcion" 
                           value="<%= request.getAttribute("descripcion") != null ? request.getAttribute("descripcion") : "" %>"
                           maxlength="250"
-                          placeholder="A�ade una breve descripci�n del video"></textarea>
+                          placeholder="Añade una breve descripción del video"></textarea>
 
                 <label>Tipo de Video:</label>
                 <select id="tipoVideo" name="tipoVideo" required>
-                    <option value="">Seleccione una opci�n</option>
+                    <option value="">Seleccione una opción</option>
                     <option value="archivo">Subir archivo</option>
                     <option value="youtube">Enlace de YouTube</option>
                 </select>
@@ -59,14 +61,14 @@
                 <div id="campoArchivo" style="display: none;">
                     <label>Subir Video:</label>
                     <!--<input type="file" name="archivoVideo" accept="video/*"/>-->
-                    <input type="file" id="archivoVideo" name="archivoVideo" accept="video/mp4" onchange="validarTamanio()"/>
+                    <input type="file" id="archivoVideo" name="archivoVideo" accept="video/mp4" onchange="validarTamaño()"/>
                     <div class="position-fixed top-0 end-0 p-3" style="z-index: 9999">
                     <div id="errorFileToast" class="toast align-items-center text-bg-danger border-0"
                          role="alert" aria-live="assertive" aria-atomic="true"
                          data-bs-autohide="false">
                             <div class="d-flex">
                                 <div class="toast-body">
-                                    <!-- Mensaje din�mico -->
+                                    <!-- Mensaje dinámico -->
                                 </div>
                                 <button type="button" class="btn-close btn-close-white me-2 m-auto"
                                         data-bs-dismiss="toast" aria-label="Close"></button>
@@ -74,10 +76,10 @@
                         </div>
                     </div>
                     <script>
-                        function validarTamanio() {
+                        function validarTamaño() {
                             const input = document.getElementById("archivoVideo");
                             const file = input.files[0];
-                            const maxSizeMB = 50; // L�mite en MB
+                            const maxSizeMB = 50; // Límite en MB
                             const maxSizeBytes = maxSizeMB * 1024 * 1024;
                             const toastEl = document.getElementById("errorFileToast");
                             const toastBody = toastEl.querySelector(".toast-body");
@@ -92,7 +94,7 @@
                                 // Mostrar el toast
                                 toast.show();
 
-                                // Borrar el archivo para evitar el env�o
+                                // Borrar el archivo para evitar el envío
                                 input.value = "";
                             }
                         }
@@ -123,7 +125,7 @@
                     </div>
                 </div>
             </div>
-            <!-- Script para inicializar el toast autom�ticamente -->
+            <!-- Script para inicializar el toast automáticamente -->
             <script>
                 document.addEventListener('DOMContentLoaded', function () {
                     var toastEl = document.getElementById('errorToast');
@@ -149,7 +151,7 @@
                     </div>
                 </div>
             </div>
-            <!-- Script para inicializar el toast autom�ticamente -->
+            <!-- Script para inicializar el toast automáticamente -->
             <script>
                 document.addEventListener('DOMContentLoaded', function () {
                     var toastEl = document.getElementById('successToast');
@@ -159,7 +161,7 @@
             </script>
             <% } %>
 
-            <a href="home.jsp" class="back-link">Volver al men� principal</a>
+            <a href="home.jsp" class="back-link">Volver al menú principal</a>
         </div>
 
         <script>

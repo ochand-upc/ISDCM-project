@@ -35,6 +35,26 @@ public class servletRest extends HttpServlet {
     private final ObjectMapper mapper = new ObjectMapper();
 
     @Override
+    protected void doHead(HttpServletRequest req, HttpServletResponse resp)
+            throws ServletException, IOException {
+        
+        HttpSession session = req.getSession(false);
+        String jwt = (session == null) ? null : (String) session.getAttribute("jwt");
+        if (session == null || jwt == null) {
+            resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            return;
+        }
+
+        String action = req.getParameter("action");
+        if ("stream".equals(action)) {
+            // Para HEAD requests de streaming, solo verificar disponibilidad
+            verificarDisponibilidadVideo(req, resp, jwt);
+        } else {
+            resp.sendError(400, "Acción HEAD no soportada");
+        }
+    }
+
+    @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
 
@@ -225,55 +245,188 @@ public class servletRest extends HttpServlet {
             req.getRequestDispatcher("verVideo.jsp").forward(req, resp);
 
         } else {
-            // 5) manejar error
-            req.getSession().setAttribute("mensajeError", "No se pudo cargar el video (código " + conn.getResponseCode() + ")");
+            // 5) manejar error al obtener metadata del video
+            int responseCode = conn.getResponseCode();
+            String errorMessage;
+            
+            if (responseCode == 404) {
+                errorMessage = "Video no encontrado: El video con ID " + id + " no existe en el sistema.";
+            } else if (responseCode == 500) {
+                errorMessage = "Error del servidor: No se pudo obtener la información del video.";
+            } else {
+                errorMessage = "Error al cargar el video: Código de error " + responseCode + ".";
+            }
+            
+            req.getSession().setAttribute("mensajeError", errorMessage);
             resp.sendRedirect("listadoVid.jsp");
         }
     }
 
     private void proxyStream(HttpServletRequest req, HttpServletResponse resp, String jwt)
             throws ServletException, IOException {
+        
         String id = req.getParameter("id");
         URL url = new URL(API_BASE + "/" + id + "/stream");
-        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-        // Propaga rango si existe
-        String range = req.getHeader("Range");
-        if (range != null) {
-            conn.setRequestProperty("Range", range);
-        }
-        conn.setRequestProperty("Authorization", "Bearer " + jwt);
-        conn.setRequestMethod("GET");
-
-        int status = conn.getResponseCode();
-        resp.setStatus(status);
-
-        if (status == HttpURLConnection.HTTP_UNAUTHORIZED) {
-            resp.sendRedirect("login.jsp?error=token");
-            return;
-        }
-
-        // Copiar solo los headers relevantes
-        for (Map.Entry<String, List<String>> header : conn.getHeaderFields().entrySet()) {
-            String key = header.getKey();
-            if (key == null) {
-                continue;
+        HttpURLConnection conn = null;
+        
+        try {
+            conn = (HttpURLConnection) url.openConnection();
+            
+            // Propaga rango si existe
+            String range = req.getHeader("Range");
+            if (range != null) {
+                conn.setRequestProperty("Range", range);
             }
-            if (key.equalsIgnoreCase("Content-Type")
-                    || key.equalsIgnoreCase("Content-Length")
-                    || key.equalsIgnoreCase("Accept-Ranges")
-                    || key.equalsIgnoreCase("Content-Range")) {
-                for (String v : header.getValue()) {
-                    resp.addHeader(key, v);
+            
+            conn.setRequestProperty("Authorization", "Bearer " + jwt);
+            conn.setRequestMethod("GET");
+
+            int status = conn.getResponseCode();
+            resp.setStatus(status);
+
+            if (status == HttpURLConnection.HTTP_UNAUTHORIZED) {
+                resp.sendRedirect("login.jsp?error=token");
+                return;
+            }
+            
+            // Manejar errores específicos del backend
+            if (status >= 400) {
+                // Leer mensaje de error del backend
+                String errorContent = "";
+                String errorType = "";
+                try (InputStream errorStream = conn.getErrorStream()) {
+                    if (errorStream != null) {
+                        errorContent = new BufferedReader(new InputStreamReader(errorStream))
+                                .lines().collect(Collectors.joining("\n"));
+                        
+                        // Intentar extraer tipo de error del JSON
+                        if (errorContent.contains("\"type\":")) {
+                            int typeStart = errorContent.indexOf("\"type\":") + 8;
+                            int typeEnd = errorContent.indexOf("\"", typeStart + 1);
+                            if (typeEnd > typeStart) {
+                                errorType = errorContent.substring(typeStart + 1, typeEnd);
+                            }
+                        }
+                    }
+                } catch (Exception e) {
+                    System.err.println("Error leyendo mensaje de error del backend: " + e.getMessage());
+                }
+                
+                // Log del error para debugging
+                System.err.println("Error en streaming de video " + id + " - Status: " + status + " - Error: " + errorContent);
+                
+                // NO hacer redirect para requests de streaming, devolver error directo
+                // El JavaScript del frontend manejará estos errores
+                resp.setStatus(status);
+                resp.setContentType("application/json");
+                
+                // Crear respuesta de error estructurada para el frontend
+                String errorResponse;
+                if (status == 416) { // Range Not Satisfiable
+                    errorResponse = "{\"error\":\"Rango de bytes inválido\",\"details\":\"El archivo puede estar corrupto\",\"code\":416,\"videoId\":" + id + "}";
+                } else if (status == 422) { // Unprocessable Entity
+                    if ("VIDEO_NOT_ENCRYPTED".equals(errorType)) {
+                        errorResponse = "{\"error\":\"Video no cifrado\",\"details\":\"El video no está cifrado correctamente\",\"code\":422,\"videoId\":" + id + "}";
+                    } else if ("VIDEO_CORRUPTED".equals(errorType)) {
+                        errorResponse = "{\"error\":\"Video corrupto\",\"details\":\"El archivo está dañado\",\"code\":422,\"videoId\":" + id + "}";
+                    } else if ("DECRYPTION_FAILED".equals(errorType)) {
+                        errorResponse = "{\"error\":\"Error de descifrado\",\"details\":\"No se pudo descifrar el video\",\"code\":422,\"videoId\":" + id + "}";
+                    } else {
+                        errorResponse = "{\"error\":\"Video no procesable\",\"details\":\"El archivo no se puede procesar\",\"code\":422,\"videoId\":" + id + "}";
+                    }
+                } else if (status == 404) {
+                    if ("VIDEO_NOT_FOUND".equals(errorType)) {
+                        errorResponse = "{\"error\":\"Video no encontrado\",\"details\":\"El archivo ha sido eliminado del servidor\",\"code\":404,\"videoId\":" + id + "}";
+                    } else {
+                        errorResponse = "{\"error\":\"Video no disponible\",\"details\":\"El archivo no se encuentra\",\"code\":404,\"videoId\":" + id + "}";
+                    }
+                } else if (status == 500) {
+                    errorResponse = "{\"error\":\"Error del servidor\",\"details\":\"No se puede procesar el video\",\"code\":500,\"videoId\":" + id + "}";
+                } else {
+                    errorResponse = "{\"error\":\"Error de reproducción\",\"details\":\"No se puede cargar el video\",\"code\":" + status + ",\"videoId\":" + id + "}";
+                }
+                
+                resp.getWriter().write(errorResponse);
+                return;
+            }
+
+            // Copiar headers relevantes para streaming
+            for (Map.Entry<String, List<String>> header : conn.getHeaderFields().entrySet()) {
+                String key = header.getKey();
+                if (key == null) {
+                    continue;
+                }
+                if (key.equalsIgnoreCase("Content-Type")
+                        || key.equalsIgnoreCase("Content-Length")
+                        || key.equalsIgnoreCase("Accept-Ranges")
+                        || key.equalsIgnoreCase("Content-Range")
+                        || key.equalsIgnoreCase("Cache-Control")
+                        || key.equalsIgnoreCase("Pragma")
+                        || key.equalsIgnoreCase("Expires")) {
+                    for (String v : header.getValue()) {
+                        resp.addHeader(key, v);
+                    }
                 }
             }
-        }
+            
+            // Log del status y headers importantes
+            System.out.println("Proxy streaming video " + id + " - Status: " + status);
+            if (range != null) {
+                String contentRange = conn.getHeaderField("Content-Range");
+                System.out.println("Content-Range: " + contentRange);
+            }
 
-        // Stream de bytes
-        try (InputStream in = conn.getInputStream(); OutputStream out = resp.getOutputStream()) {
-            byte[] buf = new byte[4096];
-            int len;
-            while ((len = in.read(buf)) != -1) {
-                out.write(buf, 0, len);
+            // Stream de bytes con manejo robusto de desconexiones
+            try (InputStream in = conn.getInputStream()) {
+                OutputStream out = resp.getOutputStream();
+                byte[] buf = new byte[16384]; // Buffer más grande
+                int len;
+                long totalSent = 0;
+                
+                while ((len = in.read(buf)) != -1) {
+                    try {
+                        out.write(buf, 0, len);
+                        totalSent += len;
+                        
+                        // Flush menos frecuente para no interferir con Range requests
+                        if (totalSent % (512 * 1024) == 0) { // Cada 512KB
+                            out.flush();
+                        }
+                        
+                    } catch (IOException e) {
+                        // Solo loggear desconexiones si se ha transferido una cantidad significativa
+                        if (totalSent > 64 * 1024) { // Solo si se han transferido más de 64KB
+                            System.out.println("Cliente desconectado durante proxy streaming de video " + id + 
+                                             " (transferidos " + totalSent + " bytes)");
+                        }
+                        break; // Salir limpiamente
+                    }
+                }
+                
+                // Flush final para asegurar entrega
+                try {
+                    out.flush();
+                    if (totalSent > 0) {
+                        System.out.println("Proxy streaming de video " + id + " completado: " + totalSent + " bytes transferidos");
+                    }
+                } catch (IOException e) {
+                    // Ignorar errores de flush final
+                }
+                
+            } catch (IOException e) {
+                // Error en la conexión con el web-service o problema de red
+                String errorMsg = "Error durante proxy streaming de video " + id + ": " + e.getMessage();
+                
+                // Solo loggear errores severos, no desconexiones menores
+                if (!isMinorDisconnectionError(e)) {
+                    System.err.println(errorMsg);
+                    throw new ServletException(errorMsg, e);
+                }
+            }
+            
+        } finally {
+            if (conn != null) {
+                conn.disconnect();
             }
         }
     }
@@ -353,6 +506,87 @@ public class servletRest extends HttpServlet {
         }
     }
 
+    private void verificarDisponibilidadVideo(HttpServletRequest req, HttpServletResponse resp, String jwt)
+            throws ServletException, IOException {
+        
+        String id = req.getParameter("id");
+        URL url = new URL(API_BASE + "/" + id + "/stream");
+        HttpURLConnection conn = null;
+        
+        try {
+            conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestProperty("Authorization", "Bearer " + jwt);
+            conn.setRequestMethod("HEAD"); // Solo verificar headers
+
+            int status = conn.getResponseCode();
+            resp.setStatus(status);
+
+            if (status == HttpURLConnection.HTTP_UNAUTHORIZED) {
+                return;
+            }
+            
+            // Si hay error, devolver información del error como JSON
+            if (status >= 400) {
+                resp.setContentType("application/json");
+                
+                String errorResponse;
+                if (status == 404) {
+                    errorResponse = "{\"error\":\"Video no encontrado\",\"details\":\"El archivo ha sido eliminado del servidor\",\"code\":404,\"videoId\":" + id + "}";
+                } else if (status == 422) {
+                    errorResponse = "{\"error\":\"Video no procesable\",\"details\":\"El archivo no se puede procesar\",\"code\":422,\"videoId\":" + id + "}";
+                } else if (status == 500) {
+                    errorResponse = "{\"error\":\"Error del servidor\",\"details\":\"No se puede acceder al video\",\"code\":500,\"videoId\":" + id + "}";
+                } else {
+                    errorResponse = "{\"error\":\"Video no disponible\",\"details\":\"No se puede cargar el video\",\"code\":" + status + ",\"videoId\":" + id + "}";
+                }
+                
+                resp.getWriter().write(errorResponse);
+                return;
+            }
+            
+            // Si está OK, copiar headers relevantes
+            String contentType = conn.getHeaderField("Content-Type");
+            String contentLength = conn.getHeaderField("Content-Length");
+            String acceptRanges = conn.getHeaderField("Accept-Ranges");
+            
+            if (contentType != null) resp.setHeader("Content-Type", contentType);
+            if (contentLength != null) resp.setHeader("Content-Length", contentLength);
+            if (acceptRanges != null) resp.setHeader("Accept-Ranges", acceptRanges);
+            
+        } finally {
+            if (conn != null) {
+                conn.disconnect();
+            }
+        }
+    }
+    
+    /**
+     * Método helper para identificar errores menores de desconexión
+     */
+    private boolean isMinorDisconnectionError(IOException e) {
+        String message = e.getMessage();
+        if (message == null) return false;
+        
+        return message.contains("Connection is closed") ||
+               message.contains("Broken pipe") ||
+               message.contains("Connection reset by peer") ||
+               message.contains("ClientAbortException");
+    }
+    
+    /**
+     * Método helper para identificar errores de desconexión del cliente
+     */
+    private boolean isClientDisconnectionError(IOException e) {
+        String message = e.getMessage();
+        if (message == null) return false;
+        
+        return message.contains("Connection is closed") ||
+               message.contains("Broken pipe") ||
+               message.contains("Connection reset by peer") ||
+               message.contains("ClientAbortException") ||
+               message.toLowerCase().contains("connection");
+    }
+    
     private void actualizarVistas(HttpServletRequest req, HttpServletResponse resp, String jwt)
             throws IOException {
         String id = req.getParameter("id");
